@@ -25,7 +25,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Control de Gastos de Vehículos',
       home: BlocProvider(
-        create: (context) => VehiculosBloc(),
+        create: (context) => VehiculosBloc()..add(VehiculosInicializado(vehiculos: [Vehiculo(id: 1, marca: 'marca', modelo: 'modelo', anio: 'anio', color: 'color')])),
         child: VehiculosScreen(),
       ),
     );
@@ -41,11 +41,13 @@ class VehiculosScreen extends StatelessWidget {
       ),
       body: BlocBuilder<VehiculosBloc, VehiculoEstado>(
         builder: (context, state) {
-          if (state is VehiculosInicial) {
-            return Center(
-              child: CircularProgressIndicator(),
-            );
-          } else if (state is VehiculosActualizados) {
+          // if (state is VehiculosInicializado) {
+          //   return Center(
+          //     child: CircularProgressIndicator(),
+          //   );
+          // } else if (state is VehiculosActualizados) {
+              {print(state.vehiculos);}
+
             if (state.vehiculos.isEmpty) {
               return Center(
                 child: Text('No hay vehículos'),
@@ -89,11 +91,11 @@ class VehiculosScreen extends StatelessWidget {
                 },
               );
             }
-          } else {
-            return Center(
-              child: Text('Error en el estado del Bloc'),
-            );
-          }
+          // } else {
+          //   return Center(
+          //     child: Text('Error en el estado del Bloc'),
+          //   );
+          // }
         },
       ),
       floatingActionButton: FloatingActionButton(
@@ -106,24 +108,24 @@ class VehiculosScreen extends StatelessWidget {
   }
 
   void _mostrarDialogoEditarVehiculo(BuildContext context, Vehiculo vehiculo) {
-    TextEditingController idController =
-        TextEditingController(text: vehiculo.id.toString());
-    TextEditingController marcaController =
-        TextEditingController(text: vehiculo.marca);
-    TextEditingController modeloController =
-        TextEditingController(text: vehiculo.modelo);
-    TextEditingController anioController =
-        TextEditingController(text: vehiculo.anio);
-    TextEditingController colorController =
-        TextEditingController(text: vehiculo.color);
+  TextEditingController idController =
+      TextEditingController(text: vehiculo.id.toString());
+  TextEditingController marcaController =
+      TextEditingController(text: vehiculo.marca);
+  TextEditingController modeloController =
+      TextEditingController(text: vehiculo.modelo);
+  TextEditingController anioController =
+      TextEditingController(text: vehiculo.anio);
+  TextEditingController colorController =
+      TextEditingController(text: vehiculo.color);
 
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Editar Vehículo'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
+  showModalBottomSheet(
+    context: context,
+    builder: (BuildContext context) {
+      return SingleChildScrollView(
+        child: Container(
+          padding: EdgeInsets.all(24),
+          child: Column(
             children: [
               TextField(
                 decoration: InputDecoration(labelText: 'ID'),
@@ -146,53 +148,63 @@ class VehiculosScreen extends StatelessWidget {
                 decoration: InputDecoration(labelText: 'Color'),
                 controller: colorController,
               ),
+              SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  ElevatedButton(
+                    onPressed: () {
+                      context.read<VehiculosBloc>().add(
+                            UpdateVehiculo(
+                              vehiculo: Vehiculo(
+                                id: int.parse(idController.text),
+                                marca: marcaController.text,
+                                modelo: modeloController.text,
+                                anio: anioController.text,
+                                color: colorController.text,
+                              ),
+                            ),
+                          );
+
+                      Navigator.of(context).pop();
+                    },
+                    child: Text('Guardar'),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: Text('Cancelar'),
+                  ),
+                ],
+              ),
             ],
           ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                context.read<VehiculosBloc>().add(
-                      UpdateVehiculo(
-                        vehiculo: Vehiculo(
-                          id: int.parse(idController.text),
-                          marca: marcaController.text,
-                          modelo: modeloController.text,
-                          anio: anioController.text,
-                          color: colorController.text,
-                        ),
-                      ),
-                    );
+        ),
+      );
+    },
+  );
+}
 
-                Navigator.of(context).pop();
-              },
-              child: Text('Guardar'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text('Cancelar'),
-            ),
-          ],
-        );
-      },
-    );
-  }
+void _mostrarDialogoAgregarVehiculo(BuildContext context) {
+  TextEditingController idController = TextEditingController();
+  TextEditingController marcaController = TextEditingController();
+  TextEditingController modeloController = TextEditingController();
+  TextEditingController anioController = TextEditingController();
+  TextEditingController colorController = TextEditingController();
 
-  void _mostrarDialogoAgregarVehiculo(BuildContext context) {
-    TextEditingController marcaController = TextEditingController();
-    TextEditingController modeloController = TextEditingController();
-    TextEditingController anioController = TextEditingController();
-    TextEditingController colorController = TextEditingController();
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Agregar Vehículo'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
+  showModalBottomSheet(
+    context: context,
+    builder: (BuildContext context) {
+      return SingleChildScrollView(
+        child: Container(
+          padding: EdgeInsets.all(24),
+          child: Column(
             children: [
+              TextField(
+                decoration: InputDecoration(labelText: 'ID'),
+                controller: idController,
+              ),
               TextField(
                 decoration: InputDecoration(labelText: 'Marca'),
                 controller: marcaController,
@@ -209,36 +221,31 @@ class VehiculosScreen extends StatelessWidget {
                 decoration: InputDecoration(labelText: 'Color'),
                 controller: colorController,
               ),
+              SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () {
+                  context.read<VehiculosBloc>().add(
+                        AddVehiculo(
+                          vehiculo: Vehiculo(
+                            id: int.parse(idController.toString()),
+                            marca: marcaController.text,
+                            modelo: modeloController.text,
+                            anio: anioController.text,
+                            color: colorController.text,
+                          ),
+                        ),
+                      );
+
+                  Navigator.of(context).pop();
+                },
+                child: Text('Guardar'),
+              ),
             ],
           ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                context.read<VehiculosBloc>().add(
-                      AddVehiculo(
-                        vehiculo: Vehiculo(
-                          id: 1,
-                          marca: marcaController.text,
-                          modelo: modeloController.text,
-                          anio: anioController.text,
-                          color: colorController.text,
-                        ),
-                      ),
-                    );
+        ),
+      );
+    },
+  );
+}
 
-                Navigator.of(context).pop();
-              },
-              child: Text('Guardar'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text('Cancelar'),
-            ),
-          ],
-        );
-      },
-    );
-  }
 }
