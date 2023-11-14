@@ -4,16 +4,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:control_gastos_carros/modelos/vehiculos.dart';
 
 void main() {
-  // Crear un vehículo de ejemplo
   // Vehiculo vehiculoEjemplo = Vehiculo(
   //   id: 1,
   //   marca: 'Ejemplo',
-  //   modelo: 'Modelo Ejemplo',
+  //   modelo: 'Modelo ejemplo',
   //   anio: '2022',
   //   color: 'Rojo',
   // );
 
-  // // Crear el Bloc y agregar el vehículo de ejemplo
   // VehiculosBloc vehiculosBloc = VehiculosBloc();
   // vehiculosBloc.add(AddVehiculo(vehiculo: vehiculoEjemplo));
   runApp(MyApp());
@@ -22,17 +20,22 @@ void main() {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Control de Gastos de Vehículos',
-      home: BlocProvider(
-        create: (context) => VehiculosBloc()..add(VehiculosInicializado(vehiculos: [Vehiculo(id: 1, marca: 'marca', modelo: 'modelo', anio: 'anio', color: 'color')])),
-        child: VehiculosScreen(),
+    return BlocProvider(
+      create: (context) => VehiculosBloc()..add(VehiculosInicializado(vehiculos: [Vehiculo(id: 1, marca: 'marca', modelo: 'modelo', anio: 'anio', color: 'color')])),
+      child: MaterialApp(
+        title: 'Control de Gastos de Vehículos',
+        home: VehiculosScreen(),
       ),
     );
   }
 }
 
-class VehiculosScreen extends StatelessWidget {
+class VehiculosScreen extends StatefulWidget {
+  @override
+  State<VehiculosScreen> createState() => _VehiculosScreenState();
+}
+
+class _VehiculosScreenState extends State<VehiculosScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -41,55 +44,61 @@ class VehiculosScreen extends StatelessWidget {
       ),
       body: BlocBuilder<VehiculosBloc, VehiculoEstado>(
         builder: (context, state) {
+          var estado = context.watch<VehiculosBloc>().state;
+          print('BlocBuilder reconstruido. Nuevo estado: $estado');
           // if (state is VehiculosInicializado) {
           //   return Center(
           //     child: CircularProgressIndicator(),
           //   );
           // } else if (state is VehiculosActualizados) {
-              {print(state.vehiculos);}
+              // {print(state.vehiculos);}
 
-            if (state.vehiculos.isEmpty) {
+            if (estado.vehiculos.isEmpty) {
               return Center(
                 child: Text('No hay vehículos'),
               );
             } else {
               return ListView.builder(
-                itemCount: state.vehiculos.length,
-                itemBuilder: (context, index) {
-                  return ListTile(
-                    title: Text(
-                      'Marca: ${state.vehiculos[index].marca} - Modelo: ${state.vehiculos[index].modelo}',
-                    ),
-                    subtitle: Text(
-                      'Año: ${state.vehiculos[index].anio} - Color: ${state.vehiculos[index].color}',
-                    ),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: Icon(Icons.edit),
-                          onPressed: () {
-                            _mostrarDialogoEditarVehiculo(
-                              context,
-                              state.vehiculos[index],
-                            );
-                          },
-                        ),
-                        IconButton(
-                          icon: Icon(Icons.delete),
-                          onPressed: () {
-                            context.read<VehiculosBloc>().add(
-                                  DeleteVehiculo(
-                                    vehiculo: state.vehiculos[index],
-                                  ),
-                                );
-                          },
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              );
+                  itemCount: estado.vehiculos.length,
+                  itemBuilder: (context, index) {
+                    return ListTile(
+                      title: Text(
+                        'Marca: ${estado.vehiculos[index].marca} - Modelo: ${estado.vehiculos[index].modelo}',
+                      ),
+                      subtitle: Text(
+                        'Año: ${estado.vehiculos[index].anio} - Color: ${estado.vehiculos[index].color}',
+                      ),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: Icon(Icons.edit),
+                            color: Colors.blueGrey,
+                            onPressed: () {
+                              _mostrarDialogoEditarVehiculo(
+                                context,
+                                estado.vehiculos[index],
+                              );
+                            },
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.delete),
+                            color: Colors.red,
+                            onPressed: /* pressedEliminar(context, estado.vehiculos[index]) */
+                            () {
+                              context.read<VehiculosBloc>().add(
+                                    DeleteVehiculo(
+                                      vehiculo: estado.vehiculos[index],
+                                    ),
+                                  );
+                            }, 
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                );
+              
             }
           // } else {
           //   return Center(
@@ -106,6 +115,21 @@ class VehiculosScreen extends StatelessWidget {
       ),
     );
   }
+
+  VoidCallback? pressedEliminar(BuildContext context, Vehiculo vehiculo){
+    var estado = context.watch<VehiculosBloc>().state;
+
+  switch(estado.runtimeType){
+    case VehiculosInicial:
+      return null;
+      break;
+    default:
+    if((estado as VehiculosActualizados).vehiculos.isEmpty) return null;
+      return(){
+        context.read<VehiculosBloc>().add(DeleteVehiculo(vehiculo: vehiculo));
+      };
+  }
+}
 
   void _mostrarDialogoEditarVehiculo(BuildContext context, Vehiculo vehiculo) {
   TextEditingController idController =
@@ -154,7 +178,7 @@ class VehiculosScreen extends StatelessWidget {
                 children: [
                   ElevatedButton(
                     onPressed: () {
-                      context.read<VehiculosBloc>().add(
+                      context.watch<VehiculosBloc>().add(
                             UpdateVehiculo(
                               vehiculo: Vehiculo(
                                 id: int.parse(idController.text),
@@ -227,7 +251,7 @@ void _mostrarDialogoAgregarVehiculo(BuildContext context) {
                   context.read<VehiculosBloc>().add(
                         AddVehiculo(
                           vehiculo: Vehiculo(
-                            id: int.parse(idController.toString()),
+                            id: int.parse(idController.text),
                             marca: marcaController.text,
                             modelo: modeloController.text,
                             anio: anioController.text,
@@ -247,5 +271,5 @@ void _mostrarDialogoAgregarVehiculo(BuildContext context) {
     },
   );
 }
-
 }
+
