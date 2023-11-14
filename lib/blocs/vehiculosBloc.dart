@@ -23,6 +23,12 @@ class DeleteVehiculo extends VehiculoEvento{
   DeleteVehiculo({required this.vehiculo});
 }
 
+class VehiculosInicializado extends VehiculoEvento {
+  final List<Vehiculo> vehiculos;
+
+  VehiculosInicializado({required this.vehiculos});
+}
+
 //Estados
 
 class VehiculoEstado extends Equatable{
@@ -49,18 +55,22 @@ class VehiculosBloc extends Bloc<VehiculoEvento, VehiculoEstado> {
       // TODO: implement event handler
     });
 
+    on<VehiculosInicializado>((event, emit) {
+      emit(VehiculosActualizados(vehiculos: event.vehiculos));
+    });
+
     on<AddVehiculo>((event, emit) {
       state.vehiculos.add(event.vehiculo);
       emit(VehiculosActualizados(vehiculos: state.vehiculos));
       // Imprimir en la consola el valor del vehículo
-      print('Vehículo añadido: ${state.vehiculos.toString()}');
+      // print('Vehículo añadido: ${state.vehiculos.toString()}');
     });
 
     on<UpdateVehiculo>((event, emit) {
       for(int i = 0; i < state.vehiculos.length; i++){
         if(event.vehiculo.id == state.vehiculos[i].id){
           state.vehiculos[i] = event.vehiculo;
-          print('Vehículo actualizado: ${event.vehiculo.toString()}');
+          // print('Vehículo actualizado: ${event.vehiculo.toString()}');
         }
       }
 
