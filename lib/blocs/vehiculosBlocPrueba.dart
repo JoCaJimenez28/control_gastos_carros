@@ -1,7 +1,9 @@
 import 'package:bloc/bloc.dart';
+import 'package:control_gastos_carros/database/database.dart';
 import 'package:control_gastos_carros/modelos/vehiculos.dart';
 import 'package:equatable/equatable.dart';
 
+late Database_helper db;
 //Eventos
 sealed class VehiculoEvento {}
 
@@ -43,6 +45,9 @@ class VehiculosBloc extends Bloc<VehiculoEvento, VehiculoEstado> {
 
   VehiculosBloc() : super(VehiculoEstado._()) {
     on<VehiculosInicializado>((event, emit) {
+      db.iniciarDatabase();
+      print(db.dbGestor.execute('SELECT * FROM vehiculos'));
+
       _vehiculos.addAll(listaOriginal);
       emit(VehiculoEstado(vehiculos: _vehiculos));
     });
