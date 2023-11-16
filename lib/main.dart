@@ -1,9 +1,11 @@
-import 'package:control_gastos_carros/blocs/vehiculosBlocPrueba.dart';
+import 'package:control_gastos_carros/blocs/vehiculosBlocDb.dart';
+import 'package:control_gastos_carros/database/database.dart';
+// import 'package:control_gastos_carros/blocs/vehiculosBlocPrueba.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:control_gastos_carros/modelos/vehiculos.dart';
 
-void main() {
+void main() async {
   // Vehiculo vehiculoEjemplo = Vehiculo(
   //   id: 1,
   //   marca: 'Ejemplo',
@@ -14,6 +16,11 @@ void main() {
 
   // VehiculosBloc vehiculosBloc = VehiculosBloc();
   // vehiculosBloc.add(AddVehiculo(vehiculo: vehiculoEjemplo));
+  WidgetsFlutterBinding.ensureInitialized();
+
+  Database_helper dbHelper = Database_helper();
+  await dbHelper.iniciarDatabase();
+  
   runApp(MyApp());
 }
 
@@ -21,7 +28,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => VehiculosBloc()..add(VehiculosInicializado()),
+      create: (context) => VehiculosBlocDb()..add(VehiculosInicializado()),
       child: MaterialApp(
         title: 'Control de Gastos de Vehículos',
         home: VehiculosScreen(),
@@ -42,9 +49,9 @@ class _VehiculosScreenState extends State<VehiculosScreen> {
       appBar: AppBar(
         title: Text('Vehículos'),
       ),
-      body: BlocBuilder<VehiculosBloc, VehiculoEstado>(
+      body: BlocBuilder<VehiculosBlocDb, VehiculoEstado>(
         builder: (context, state) {
-          var estado = context.watch<VehiculosBloc>().state;
+          var estado = context.watch<VehiculosBlocDb>().state;
           print('BlocBuilder reconstruido. Nuevo estado: $estado');
 
           if (estado.vehiculos.isEmpty) {
@@ -79,7 +86,7 @@ class _VehiculosScreenState extends State<VehiculosScreen> {
                         icon: Icon(Icons.delete),
                         color: Colors.red,
                         onPressed: () {
-                          context.read<VehiculosBloc>().add(
+                          context.read<VehiculosBlocDb>().add(
                                 DeleteVehiculo(
                                   vehiculo: estado.vehiculos[index],
                                 ),
@@ -165,7 +172,7 @@ class _VehiculosScreenState extends State<VehiculosScreen> {
                   children: [
                     ElevatedButton(
                       onPressed: () {
-                        context.read<VehiculosBloc>().add(
+                        context.read<VehiculosBlocDb>().add(
                               UpdateVehiculo(
                                 vehiculo: Vehiculo(
                                   id: int.parse(idController.text),
@@ -235,7 +242,7 @@ class _VehiculosScreenState extends State<VehiculosScreen> {
                 SizedBox(height: 16),
                 ElevatedButton(
                   onPressed: () {
-                    context.read<VehiculosBloc>().add(
+                    context.read<VehiculosBlocDb>().add(
                           AddVehiculo(
                             vehiculo: Vehiculo(
                               id: int.parse(idController.text),

@@ -45,9 +45,6 @@ class VehiculosBloc extends Bloc<VehiculoEvento, VehiculoEstado> {
 
   VehiculosBloc() : super(VehiculoEstado._()) {
     on<VehiculosInicializado>((event, emit) {
-      db.iniciarDatabase();
-      print(db.dbGestor.execute('SELECT * FROM vehiculos'));
-
       _vehiculos.addAll(listaOriginal);
       emit(VehiculoEstado(vehiculos: _vehiculos));
     });
