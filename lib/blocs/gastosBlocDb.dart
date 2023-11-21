@@ -1,126 +1,107 @@
 import 'package:bloc/bloc.dart';
 import 'package:flutter/material.dart';
-import 'package:mockito/mockito.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:control_gastos_carros/blocs/vehiculosBlocDb.dart';
 import 'package:control_gastos_carros/database/database.dart';
+import 'package:control_gastos_carros/modelos/gastos.dart';
 import 'package:control_gastos_carros/modelos/vehiculos.dart';
 import 'package:equatable/equatable.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 late DatabaseHelper db;
+//Eventos
+sealed class GastoEvento {}
 
-sealed class VehiculoEvento {}
+class GastosInicializado extends GastoEvento {}
 
-class VehiculosInicializado extends VehiculoEvento {}
+class AddGasto extends GastoEvento {
+  final Gasto gasto;
+  final BuildContext context;
 
-class AddVehiculo extends VehiculoEvento {
-  final Vehiculo vehiculo;
-
-  AddVehiculo({required this.vehiculo});
+  AddGasto({required this.gasto, required this.context});
 }
 
-class UpdateVehiculo extends VehiculoEvento {
-  final Vehiculo vehiculo;
+class UpdateGasto extends GastoEvento {
+  final Gasto gasto;
 
-  UpdateVehiculo({required this.vehiculo});
+  UpdateGasto({required this.gasto});
 }
 
-class DeleteVehiculo extends VehiculoEvento {
-  final Vehiculo vehiculo;
+class DeleteGasto extends GastoEvento {
+  final Gasto gasto;
 
-  DeleteVehiculo({required this.vehiculo});
-}
-
-class ObtenerVehiculos extends VehiculoEvento {
-  final Vehiculo vehiculo;
-
-  ObtenerVehiculos({required this.vehiculo});
+  DeleteGasto({required this.gasto});
 }
 
 //Estados
-class VehiculoEstado with EquatableMixin {
-  final List<Vehiculo> vehiculos;
-  String error = "";
+class GastoEstado with EquatableMixin {
+  final List<Gasto> gastos;
 
-  VehiculoEstado._() : vehiculos = [];
+  GastoEstado._() : gastos = [];
 
-  VehiculoEstado({required this.vehiculos, this.error=""});
+  GastoEstado({required this.gastos});
 
   @override
-  List<Object?> get props => [vehiculos];
+  List<Object?> get props => [gastos];
 }
 
-class MockVehiculosBlocDb extends Mock implements VehiculosBlocDb {}
-
 //Bloc
-class VehiculosBlocDb extends Bloc<VehiculoEvento, VehiculoEstado> {
-  List<Vehiculo> _vehiculos = [];
+class GastosBloc extends Bloc<GastoEvento, GastoEstado> {
+  final BuildContext context;
+  List<Gasto> _gastos = [];
 
-  VehiculosBlocDb() : super(VehiculoEstado._()) {
-    on<VehiculosInicializado>((event, emit) async {
+  GastosBloc(this.context) : super(GastoEstado._()) {
+    on<GastosInicializado>((event, emit) async {
       await DatabaseHelper().iniciarDatabase();
-      _vehiculos = await getAllVehiculosFromDb();
-      emit(VehiculoEstado(vehiculos: _vehiculos));
+      _gastos = await getAllGastosFromDb();
+      emit(GastoEstado(gastos: _gastos));
     });
-    on<AddVehiculo>(_addVehiculo);
-    on<UpdateVehiculo>(_updateVehiculo);
-    on<DeleteVehiculo>(_deleteVehiculo);
+    on<AddGasto>(_addGasto);
+    on<UpdateGasto>(_updateGasto);
+    on<DeleteGasto>(_deleteGasto);
   }
 
-  void _addVehiculo(AddVehiculo event, Emitter<VehiculoEstado> emit) async {
+  void _addGasto(AddGasto event, Emitter<GastoEstado> emit) async {
     try {
       await DatabaseHelper().iniciarDatabase();
-      _vehiculos = await insertVehiculo(event.vehiculo);
-      emit(VehiculoEstado(vehiculos: _vehiculos));
+      _gastos = await insertGasto(event.gasto);
+      emit(GastoEstado(gastos: _gastos));
     } catch (e) {
-      emitErrorSnackBar(emit, 'Error al agregar vehículo: $e');
+      // emitErrorSnackBar(emit, 'Error al agregar gasto: $e');
+      print('error al agregar gasto');
     }
   }
 
-  void _updateVehiculo(UpdateVehiculo event, Emitter<VehiculoEstado> emit) async {
-    try {
-      Vehiculo? editvehiculo = await getVehiculoByModelo(event.vehiculo.modelo);
-      print("editVehiculo: $editvehiculo");
+  void _updateGasto(UpdateGasto event, Emitter<GastoEstado> emit) {
+    List<Gasto> updatedGastos = List.from(state.gastos);
+    int index = updatedGastos
+        .indexWhere((gasto) => gasto.id == event.gasto.id);
+    print('lista sin actualizar: $updatedGastos ');
 
-      if (editvehiculo != null) {
-        _vehiculos = await updateVehiculo(event.vehiculo);
-        emit(VehiculoEstado(vehiculos: _vehiculos));
-        print('Vehículo actualizado con éxito!');
-      } else {
-        emitErrorSnackBar(emit, 'Vehículo no encontrado para actualizar.');
-      }
-    } catch (e) {
-      emitErrorSnackBar(emit, 'Error al actualizar el vehículo: $e');
+    if (index != -1) {
+      updatedGastos[index] = event.gasto;
+      print('Gasto actualizado: $updatedGastos ');
+      emit(GastoEstado(gastos: updatedGastos));
+      print('estado ${state.gastos}');
+    } else {
+      print('Vehículo no encontrado para actualizar');
     }
   }
 
-  void _deleteVehiculo(DeleteVehiculo event, Emitter<VehiculoEstado> emit) async {
-    try {
-      List<Vehiculo> updatedList = await deleteVehiculo(event.vehiculo);
-      emit(VehiculoEstado(vehiculos: updatedList));
-      print('Vehículo eliminado con éxito!');
-    } catch (e) {
-      emitErrorSnackBar(emit, 'Error al eliminar el vehículo: $e');
+  void _deleteGasto(DeleteGasto event, Emitter<GastoEstado> emit) {
+    List<Gasto> updatedGastos = List.from(state.gastos);
+    if (_gastos.contains(event.gasto)) {
+      // _gastos = _gastos.copiar()..remove(event.gasto);
+      print('a eliminar; ${event.gasto}');
+      emit(GastoEstado(gastos: _gastos));
+      print('estado; ${state.gastos}');
+    } else {
+      print("no se encontro el vehiculo a eliminar");
     }
   }
+}
 
-  void _getVehiculos(ObtenerVehiculos event, Emitter<VehiculoEstado> emit) async {
-    try {
-      List<Vehiculo> vehiculos = await obtenerVehiculos();
-      print("Vehículos de filtro obtenidos");
-      emit(VehiculoEstado(vehiculos: vehiculos));
-    } catch (e) {
-      emitErrorSnackBar(emit, 'Error al obtener vehículos: $e');
-    }
-  }
-  
-  void emitErrorSnackBar(Emitter<VehiculoEstado> emit, String errorMessage) {
-    emit(VehiculoEstado(vehiculos: state.vehiculos, error: errorMessage)); // Mantener el estado actual  
-  }
-
-
-
-  Future<List<Vehiculo>> getAllVehiculosFromDb() async {
+Future<List<Gasto>> getAllGastosFromDb() async {
     final Database? db = await DatabaseHelper().database;
 
     if (db == null) {
@@ -128,20 +109,21 @@ class VehiculosBlocDb extends Bloc<VehiculoEvento, VehiculoEstado> {
       return [];
     }
 
-    List<Map<String, dynamic>> data = await db.query('vehiculos');
-    List<Vehiculo> listaOriginal = data.map((e) {
-      return Vehiculo(
+    List<Map<String, dynamic>> data = await db.query('gastos');
+    List<Gasto> listaOriginal = data.map((e) {
+      return Gasto(
           id: e['ID'],
-          marca: e['marca'],
-          modelo: e['modelo'],
-          anio: e['anio'],
-          color: e['color']);
+          tipoGasto: e['tipoGasto'],
+          monto: e['monto'],
+          fecha: e['fecha'],
+          descripcion: e['color'],
+          vehiculoId: e['vehiculoId']);
     }).toList();
 
     return listaOriginal;
   }
 
-  Future<List<Vehiculo>> insertVehiculo(Vehiculo vehiculo) async {
+  Future<List<Gasto>> insertGasto(Gasto gasto) async {
     final Database? db = await DatabaseHelper().database;
 
     if (db == null) {
@@ -150,25 +132,26 @@ class VehiculosBlocDb extends Bloc<VehiculoEvento, VehiculoEstado> {
     }
 
     await db.insert(
-      'vehiculos',
+      'gastos',
       {
-        'marca': vehiculo.marca,
-        'modelo': vehiculo.modelo,
-        'anio': vehiculo.anio,
-        'color': vehiculo.color
+        'tipoGasto': gasto.tipoGasto,
+        'monto': gasto.monto,
+        'fecha': gasto.fecha,
+        'descripcion': gasto.descripcion,
+        'vehiculoId': gasto.vehiculoId
       },
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
 
     List<Map<String, dynamic>> data = await db.query('vehiculos');
-    List<Vehiculo> listaOriginal = data.map((e) {
-      return Vehiculo(
-        id: e['ID'],
-        marca: e['marca'],
-        modelo: e['modelo'],
-        anio: e['anio'],
-        color: e['color'],
-      );
+    List<Gasto> listaOriginal = data.map((e) {
+      return Gasto(
+          id: e['ID'],
+          tipoGasto: e['tipoGasto'],
+          monto: e['monto'],
+          fecha: e['fecha'],
+          descripcion: e['color'],
+          vehiculoId: e['vehiculoId']);
     }).toList();
 
     return listaOriginal;
@@ -300,7 +283,7 @@ class VehiculosBlocDb extends Bloc<VehiculoEvento, VehiculoEstado> {
 
     return updatedList;
   }
-}
+
 
 Future<List<Vehiculo>> obtenerVehiculos() async {
   final Database? db = await DatabaseHelper().database;
