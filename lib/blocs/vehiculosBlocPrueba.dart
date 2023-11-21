@@ -3,7 +3,7 @@ import 'package:control_gastos_carros/database/database.dart';
 import 'package:control_gastos_carros/modelos/vehiculos.dart';
 import 'package:equatable/equatable.dart';
 
-late Database_helper db;
+late DatabaseHelper db;
 //Eventos
 sealed class VehiculoEvento {}
 

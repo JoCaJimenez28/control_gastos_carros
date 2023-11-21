@@ -1,14 +1,14 @@
 import 'package:equatable/equatable.dart';
 
 class Vehiculo with EquatableMixin {
-  final int id;
+  final int? id;
   final String marca;
   final String modelo;
   final String anio;
   final String color;
 
   Vehiculo({
-    required this.id,
+    this.id,
     required this.marca,
     required this.modelo,
     required this.anio,
