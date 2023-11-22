@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 
 class DatabaseHelper {
   Database? dbGestor;
@@ -15,16 +14,10 @@ class DatabaseHelper {
     WidgetsFlutterBinding.ensureInitialized();
     sqfliteFfiInit();
 
-    var fabricaBaseDatos = databaseFactoryFfi;
+    var fabricaBaseDatos = databaseFactoryFfi; //databasefactory
     String rutaBaseDatos;
 
     try {
-      // if (kIsWeb) {
-      //   databaseFactory = databaseFactoryFfiWeb;
-      //   rutaBaseDatos = "web/gastosdb.db"; // Provide a valid web path
-      // } else {
-      //   rutaBaseDatos = await fabricaBaseDatos.getDatabasesPath() + "/databasee.db";
-      // }
       rutaBaseDatos = await fabricaBaseDatos.getDatabasesPath() + "/database.db";
       return dbGestor = await fabricaBaseDatos.openDatabase(
         rutaBaseDatos,
@@ -44,3 +37,20 @@ class DatabaseHelper {
     }
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+      // if (kIsWeb) {
+      //   databaseFactory = databaseFactoryFfiWeb;
+      //   rutaBaseDatos = "web/gastosdb.db"; // Provide a valid web path
+      // } else {
+      //   rutaBaseDatos = await fabricaBaseDatos.getDatabasesPath() + "/databasee.db";
+      // }

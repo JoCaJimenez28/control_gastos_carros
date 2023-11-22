@@ -171,23 +171,44 @@ class _GastosScreenState extends State<GastosScreen> {
     return DateFormat('yyyy-MM-dd').format(date);
   }
 
-  void _mostrarDialogoAgregarGasto(
-      BuildContext context, List<Vehiculo> vehiculos) {
-    TextEditingController idController = TextEditingController();
-    TextEditingController tipoController = TextEditingController();
-    TextEditingController montoController = TextEditingController();
-    TextEditingController fechaController = TextEditingController(text: DateTime.now().toString());
-    TextEditingController descripcionController = TextEditingController();
-    TextEditingController vehiculoController = TextEditingController();
+  void _mostrarDialogoAgregarGasto(BuildContext context, List<Vehiculo> vehiculos) {
+  TextEditingController idController = TextEditingController();
+  TextEditingController tipoController = TextEditingController();
+  TextEditingController montoController = TextEditingController();
+  TextEditingController fechaController = TextEditingController(text: DateTime.now().toString());
+  TextEditingController descripcionController = TextEditingController();
 
-    showModalBottomSheet(
-      context: context,
-      builder: (BuildContext context) {
-        return SingleChildScrollView(
+  Vehiculo? selectedVehiculo;
+
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return Dialog(
+        child: SingleChildScrollView(
           child: Container(
             padding: EdgeInsets.all(24),
             child: Column(
               children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Agregar Gasto',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue,
+                      ),
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.close),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                  ],
+                ),
+                SizedBox(height: 16),
                 TextField(
                   decoration: InputDecoration(labelText: 'ID'),
                   controller: idController,
@@ -200,8 +221,8 @@ class _GastosScreenState extends State<GastosScreen> {
                   decoration: InputDecoration(labelText: 'Monto'),
                   controller: montoController,
                 ),
-                InkWell(
-                  onTap: () async {
+                TextButton(
+                  onPressed: () async {
                     DateTime? selectedDate = await showDatePicker(
                       context: context,
                       initialDate: DateTime.now(),
@@ -212,18 +233,15 @@ class _GastosScreenState extends State<GastosScreen> {
                       fechaController.text = formatDate(selectedDate);
                     }
                   },
-                  child: InputDecorator(
-                    decoration: InputDecoration(
-                      labelText: 'Fecha',
-                      hintText: 'Seleccione la fecha',
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(fechaController.text),
-                        Icon(Icons.calendar_today),
-                      ],
-                    ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Fecha: ${fechaController.text}',
+                        style: TextStyle(color: Colors.blue),
+                      ),
+                      Icon(Icons.calendar_today, color: Colors.blue),
+                    ],
                   ),
                 ),
                 DropdownButtonFormField<Vehiculo>(
@@ -255,30 +273,18 @@ class _GastosScreenState extends State<GastosScreen> {
                     ElevatedButton(
                       onPressed: () {
                         context.read<GastosBloc>().add(
-                              AddGasto(
-                                gasto: Gasto(
-                                  id: int.parse(idController.text),
-                                  tipoGasto: tipoController.text,
-                                  monto: double.parse(montoController.text),
-                                  fecha: DateTime.parse(fechaController.text),
-                                  descripcion: descripcionController.text,
-                                  vehiculoId: selectedVehiculo?.id != null ? selectedVehiculo!.id ?? 0:0
-                                      // : (vehiculoController.text.isNotEmpty
-                                      //     ? (vehiculoController.text
-                                      //                 .split('-')
-                                      //                 .length >
-                                      //             1
-                                      //         ? int.tryParse(vehiculoController
-                                      //                 .text
-                                      //                 .split('-')[1]
-                                      //                 .trim()) ??
-                                      //             0
-                                      //         : 0)
-                                      //     : 0),
-                                ),
-                                context: context,
-                              ),
-                            );
+                          AddGasto(
+                            gasto: Gasto(
+                              id: int.parse(idController.text),
+                              tipoGasto: tipoController.text,
+                              monto: double.parse(montoController.text),
+                              fecha: DateTime.parse(fechaController.text),
+                              descripcion: descripcionController.text,
+                              vehiculoId: selectedVehiculo?.id ?? 0,
+                            ),
+                            context: context,
+                          ),
+                        );
 
                         Navigator.of(context).pop();
                       },
@@ -288,41 +294,63 @@ class _GastosScreenState extends State<GastosScreen> {
                       onPressed: () {
                         Navigator.of(context).pop();
                       },
-                      child: Text('Cancelar'),
+                      child: Text(
+                        'Cancelar',
+                        style: TextStyle(
+                          color: Colors.red,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
                   ],
                 ),
               ],
             ),
           ),
-        );
-      },
-    );
-  }
+        ),
+      );
+    },
+  );
+}
 
-  void _mostrarDialogoEditarGasto(
-      BuildContext context, Gasto gasto, List<Vehiculo> vehiculos) {
-    TextEditingController tipoController =
-        TextEditingController(text: gasto.tipoGasto);
-    TextEditingController montoController =
-        TextEditingController(text: gasto.monto.toString());
-    TextEditingController fechaController =
-        TextEditingController(text: formatDate(gasto.fecha));
-    TextEditingController descripcionController =
-        TextEditingController(text: gasto.descripcion);
+void _mostrarDialogoEditarGasto(BuildContext context, Gasto gasto, List<Vehiculo> vehiculos) {
+  TextEditingController tipoController = TextEditingController(text: gasto.tipoGasto);
+  TextEditingController montoController = TextEditingController(text: gasto.monto.toString());
+  TextEditingController fechaController = TextEditingController(text: formatDate(gasto.fecha));
+  TextEditingController descripcionController = TextEditingController();
 
-    Vehiculo? vehiculoSeleccionado =
-        vehiculos.firstWhereOrNull((v) => v.id == gasto.vehiculoId);
-    TextEditingController vehiculoController = TextEditingController();
+  Vehiculo? vehiculoSeleccionado = vehiculos.firstWhereOrNull((v) => v.id == gasto.vehiculoId);
+  TextEditingController vehiculoController = TextEditingController();
 
-    showModalBottomSheet(
-      context: context,
-      builder: (BuildContext context) {
-        return SingleChildScrollView(
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return Dialog(
+        child: SingleChildScrollView(
           child: Container(
             padding: EdgeInsets.all(24),
             child: Column(
               children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Editar Gasto',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue,
+                      ),
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.close),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                  ],
+                ),
+                SizedBox(height: 16),
                 TextField(
                   decoration: InputDecoration(labelText: 'Tipo'),
                   controller: tipoController,
@@ -331,8 +359,8 @@ class _GastosScreenState extends State<GastosScreen> {
                   decoration: InputDecoration(labelText: 'Monto'),
                   controller: montoController,
                 ),
-                InkWell(
-                  onTap: () async {
+                TextButton(
+                  onPressed: () async {
                     DateTime? selectedDate = await showDatePicker(
                       context: context,
                       initialDate: gasto.fecha,
@@ -343,18 +371,15 @@ class _GastosScreenState extends State<GastosScreen> {
                       fechaController.text = formatDate(selectedDate);
                     }
                   },
-                  child: InputDecorator(
-                    decoration: InputDecoration(
-                      labelText: 'Fecha',
-                      hintText: 'Seleccione la fecha',
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(fechaController.text),
-                        Icon(Icons.calendar_today),
-                      ],
-                    ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Fecha: ${fechaController.text}',
+                        style: TextStyle(color: Colors.blue),
+                      ),
+                      Icon(Icons.calendar_today, color: Colors.blue),
+                    ],
                   ),
                 ),
                 DropdownButtonFormField<Vehiculo>(
@@ -368,8 +393,7 @@ class _GastosScreenState extends State<GastosScreen> {
                   }).toList(),
                   onChanged: (Vehiculo? newValue) {
                     setState(() {
-                      vehiculoController.text =
-                          '${newValue?.marca ?? ''} - ${newValue?.id ?? 0}';
+                      vehiculoController.text = '${newValue?.marca ?? ''} - ${newValue?.id ?? 0}';
                     });
                   },
                 ),
@@ -381,17 +405,17 @@ class _GastosScreenState extends State<GastosScreen> {
                 ElevatedButton(
                   onPressed: () {
                     context.read<GastosBloc>().add(
-                          UpdateGasto(
-                            gasto: Gasto(
-                              id: gasto.id,
-                              tipoGasto: tipoController.text,
-                              monto: double.parse(montoController.text),
-                              fecha: DateTime.parse(fechaController.text),
-                              descripcion: descripcionController.text,
-                              vehiculoId: vehiculoSeleccionado?.id ?? 0,
-                            ),
-                          ),
-                        );
+                      UpdateGasto(
+                        gasto: Gasto(
+                          id: gasto.id,
+                          tipoGasto: tipoController.text,
+                          monto: double.parse(montoController.text),
+                          fecha: DateTime.parse(fechaController.text),
+                          descripcion: descripcionController.text,
+                          vehiculoId: vehiculoSeleccionado?.id ?? 0,
+                        ),
+                      ),
+                    );
 
                     Navigator.of(context).pop();
                   },
@@ -400,10 +424,246 @@ class _GastosScreenState extends State<GastosScreen> {
               ],
             ),
           ),
-        );
-      },
-    );
-  }
+        ),
+      );
+    },
+  );
+}
+
+
+//   void _mostrarDialogoAgregarGasto(
+//       BuildContext context, List<Vehiculo> vehiculos) {
+//     TextEditingController idController = TextEditingController();
+//     TextEditingController tipoController = TextEditingController();
+//     TextEditingController montoController = TextEditingController();
+//     TextEditingController fechaController = TextEditingController(text: DateTime.now().toString());
+//     TextEditingController descripcionController = TextEditingController();
+//     TextEditingController vehiculoController = TextEditingController();
+
+//     showModalBottomSheet(
+//       context: context,
+//       builder: (BuildContext context) {
+//         return SingleChildScrollView(
+//           child: Container(
+//             padding: EdgeInsets.all(24),
+//             child: Column(
+//               children: [
+//                 TextField(
+//                   decoration: InputDecoration(labelText: 'ID'),
+//                   controller: idController,
+//                 ),
+//                 TextField(
+//                   decoration: InputDecoration(labelText: 'Tipo'),
+//                   controller: tipoController,
+//                 ),
+//                 TextField(
+//                   decoration: InputDecoration(labelText: 'Monto'),
+//                   controller: montoController,
+//                 ),
+//                 InkWell(
+//                   onTap: () async {
+//                     DateTime? selectedDate = await showDatePicker(
+//                       context: context,
+//                       initialDate: DateTime.now(),
+//                       firstDate: DateTime(2000),
+//                       lastDate: DateTime(2101),
+//                     );
+//                     if (selectedDate != null) {
+//                       fechaController.text = formatDate(selectedDate);
+//                     }
+//                   },
+//                   child: InputDecorator(
+//                     decoration: InputDecoration(
+//                       labelText: 'Fecha',
+//                       hintText: 'Seleccione la fecha',
+//                     ),
+//                     child: Row(
+//                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//                       children: [
+//                         Text(fechaController.text),
+//                         Icon(Icons.calendar_today),
+//                       ],
+//                     ),
+//                   ),
+//                 ),
+//                 DropdownButtonFormField<Vehiculo>(
+//                   decoration: InputDecoration(labelText: 'Vehículo'),
+//                   value: selectedVehiculo,
+//                   items: vehiculos.map((Vehiculo vehiculo) {
+//                     return DropdownMenuItem<Vehiculo>(
+//                       value: vehiculo,
+//                       child: Text('${vehiculo.marca} - ${vehiculo.modelo}'),
+//                     );
+//                   }).toList(),
+//                   onChanged: (Vehiculo? nuevoVehiculo) {
+//                     setState(() {
+//                       selectedVehiculo = nuevoVehiculo;
+//                     });
+//                   },
+//                   disabledHint: Text(selectedVehiculo != null
+//                       ? '${selectedVehiculo!.marca} - ${selectedVehiculo!.modelo}'
+//                       : 'Seleccione un vehículo'),
+//                 ),
+//                 TextField(
+//                   decoration: InputDecoration(labelText: 'Descripción'),
+//                   controller: descripcionController,
+//                 ),
+//                 SizedBox(height: 16),
+//                 Row(
+//                   mainAxisAlignment: MainAxisAlignment.spaceAround,
+//                   children: [
+//                     ElevatedButton(
+//                       onPressed: () {
+//                         context.read<GastosBloc>().add(
+//                               AddGasto(
+//                                 gasto: Gasto(
+//                                   id: int.parse(idController.text),
+//                                   tipoGasto: tipoController.text,
+//                                   monto: double.parse(montoController.text),
+//                                   fecha: DateTime.parse(fechaController.text),
+//                                   descripcion: descripcionController.text,
+//                                   vehiculoId: selectedVehiculo?.id != null ? selectedVehiculo!.id ?? 0:0
+//                                       // : (vehiculoController.text.isNotEmpty
+//                                       //     ? (vehiculoController.text
+//                                       //                 .split('-')
+//                                       //                 .length >
+//                                       //             1
+//                                       //         ? int.tryParse(vehiculoController
+//                                       //                 .text
+//                                       //                 .split('-')[1]
+//                                       //                 .trim()) ??
+//                                       //             0
+//                                       //         : 0)
+//                                       //     : 0),
+//                                 ),
+//                                 context: context,
+//                               ),
+//                             );
+
+//                         Navigator.of(context).pop();
+//                       },
+//                       child: Text('Guardar'),
+//                     ),
+//                     TextButton(
+//                       onPressed: () {
+//                         Navigator.of(context).pop();
+//                       },
+//                       child: Text('Cancelar'),
+//                     ),
+//                   ],
+//                 ),
+//               ],
+//             ),
+//           ),
+//         );
+//       },
+//     );
+//   }
+
+//   void _mostrarDialogoEditarGasto(
+//       BuildContext context, Gasto gasto, List<Vehiculo> vehiculos) {
+//     TextEditingController tipoController =
+//         TextEditingController(text: gasto.tipoGasto);
+//     TextEditingController montoController =
+//         TextEditingController(text: gasto.monto.toString());
+//     TextEditingController fechaController =
+//         TextEditingController(text: formatDate(gasto.fecha));
+//     TextEditingController descripcionController =
+//         TextEditingController(text: gasto.descripcion);
+
+//     Vehiculo? vehiculoSeleccionado =
+//         vehiculos.firstWhereOrNull((v) => v.id == gasto.vehiculoId);
+//     TextEditingController vehiculoController = TextEditingController();
+
+//     showModalBottomSheet(
+//       context: context,
+//       builder: (BuildContext context) {
+//         return SingleChildScrollView(
+//           child: Container(
+//             padding: EdgeInsets.all(24),
+//             child: Column(
+//               children: [
+//                 TextField(
+//                   decoration: InputDecoration(labelText: 'Tipo'),
+//                   controller: tipoController,
+//                 ),
+//                 TextField(
+//                   decoration: InputDecoration(labelText: 'Monto'),
+//                   controller: montoController,
+//                 ),
+//                 InkWell(
+//                   onTap: () async {
+//                     DateTime? selectedDate = await showDatePicker(
+//                       context: context,
+//                       initialDate: gasto.fecha,
+//                       firstDate: DateTime(2000),
+//                       lastDate: DateTime(2101),
+//                     );
+//                     if (selectedDate != null) {
+//                       fechaController.text = formatDate(selectedDate);
+//                     }
+//                   },
+//                   child: InputDecorator(
+//                     decoration: InputDecoration(
+//                       labelText: 'Fecha',
+//                       hintText: 'Seleccione la fecha',
+//                     ),
+//                     child: Row(
+//                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//                       children: [
+//                         Text(fechaController.text),
+//                         Icon(Icons.calendar_today),
+//                       ],
+//                     ),
+//                   ),
+//                 ),
+//                 DropdownButtonFormField<Vehiculo>(
+//                   decoration: InputDecoration(labelText: 'Vehículo'),
+//                   value: vehiculoSeleccionado,
+//                   items: vehiculos.map((Vehiculo vehiculo) {
+//                     return DropdownMenuItem<Vehiculo>(
+//                       value: vehiculo,
+//                       child: Text('${vehiculo.marca} - ${vehiculo.modelo}'),
+//                     );
+//                   }).toList(),
+//                   onChanged: (Vehiculo? newValue) {
+//                     setState(() {
+//                       vehiculoController.text =
+//                           '${newValue?.marca ?? ''} - ${newValue?.id ?? 0}';
+//                     });
+//                   },
+//                 ),
+//                 TextField(
+//                   decoration: InputDecoration(labelText: 'Descripción'),
+//                   controller: descripcionController,
+//                 ),
+//                 SizedBox(height: 16),
+//                 ElevatedButton(
+//                   onPressed: () {
+//                     context.read<GastosBloc>().add(
+//                           UpdateGasto(
+//                             gasto: Gasto(
+//                               id: gasto.id,
+//                               tipoGasto: tipoController.text,
+//                               monto: double.parse(montoController.text),
+//                               fecha: DateTime.parse(fechaController.text),
+//                               descripcion: descripcionController.text,
+//                               vehiculoId: vehiculoSeleccionado?.id ?? 0,
+//                             ),
+//                           ),
+//                         );
+
+//                     Navigator.of(context).pop();
+//                   },
+//                   child: Text('Guardar'),
+//                 ),
+//               ],
+//             ),
+//           ),
+//         );
+//       },
+//     );
+//   }
 }
 
 class TotalGastosWidget extends StatelessWidget {
