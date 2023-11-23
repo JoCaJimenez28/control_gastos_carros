@@ -1,5 +1,6 @@
 import 'package:collection/collection.dart';
-import 'package:control_gastos_carros/blocs/gastosBlocPrueba.dart';
+// import 'package:control_gastos_carros/blocs/gastosBlocPrueba.dart';
+import 'package:control_gastos_carros/blocs/gastosBlocDb.dart';
 import 'package:control_gastos_carros/blocs/vehiculosBlocDb.dart';
 import 'package:control_gastos_carros/modelos/gastos.dart';
 import 'package:control_gastos_carros/modelos/vehiculos.dart';
@@ -171,14 +172,14 @@ class _GastosScreenState extends State<GastosScreen> {
     return DateFormat('yyyy-MM-dd').format(date);
   }
 
-  void _mostrarDialogoAgregarGasto(BuildContext context, List<Vehiculo> vehiculos) {
-  TextEditingController idController = TextEditingController();
-  TextEditingController tipoController = TextEditingController();
-  TextEditingController montoController = TextEditingController();
-  TextEditingController fechaController = TextEditingController(text: DateTime.now().toString());
-  TextEditingController descripcionController = TextEditingController();
-
-  Vehiculo? selectedVehiculo;
+  void _mostrarDialogoAgregarGasto(
+      BuildContext context, List<Vehiculo> vehiculos) {
+    // TextEditingController idController = TextEditingController();
+    TextEditingController tipoController = TextEditingController();
+    TextEditingController montoController = TextEditingController();
+    TextEditingController fechaController = TextEditingController(text: DateTime.now().toString());
+    TextEditingController descripcionController = TextEditingController();
+    TextEditingController vehiculoController = TextEditingController();
 
   showDialog(
     context: context,
@@ -189,30 +190,10 @@ class _GastosScreenState extends State<GastosScreen> {
             padding: EdgeInsets.all(24),
             child: Column(
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Agregar Gasto',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.blue,
-                      ),
-                    ),
-                    IconButton(
-                      icon: Icon(Icons.close),
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
-                    ),
-                  ],
-                ),
-                SizedBox(height: 16),
-                TextField(
-                  decoration: InputDecoration(labelText: 'ID'),
-                  controller: idController,
-                ),
+                // TextField(
+                //   decoration: InputDecoration(labelText: 'ID'),
+                //   controller: idController,
+                // ),
                 TextField(
                   decoration: InputDecoration(labelText: 'Tipo'),
                   controller: tipoController,
@@ -275,7 +256,7 @@ class _GastosScreenState extends State<GastosScreen> {
                         context.read<GastosBloc>().add(
                           AddGasto(
                             gasto: Gasto(
-                              id: int.parse(idController.text),
+                              // id: int.parse(idController.text),
                               tipoGasto: tipoController.text,
                               monto: double.parse(montoController.text),
                               fecha: DateTime.parse(fechaController.text),

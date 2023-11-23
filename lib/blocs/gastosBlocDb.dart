@@ -62,13 +62,19 @@ class GastosBloc extends Bloc<GastoEvento, GastoEstado> {
   }
 
   void _addGasto(AddGasto event, Emitter<GastoEstado> emit) async {
-    try {
-      await DatabaseHelper().iniciarDatabase();
-      _gastos = await insertGasto(event.gasto);
-      emit(GastoEstado(gastos: _gastos));
-    } catch (e) {
-      // emitErrorSnackBar(emit, 'Error al agregar gasto: $e');
-      print('error al agregar gasto');
+    Vehiculo? vehiculo = await this.context.read<VehiculosBlocDb>().getVehiculoById(event.gasto.vehiculoId);
+
+    if (vehiculo != null) {
+      try {
+        await DatabaseHelper().iniciarDatabase();
+        _gastos = await insertGasto(event.gasto);
+        emit(GastoEstado(gastos: _gastos));
+      } catch (e) {
+        // emitErrorSnackBar(emit, 'Error al agregar gasto: $e');
+        print('error al agregar gasto');
+      }
+    } else {
+      print('No existe el vehiculo');
     }
   }
 
@@ -111,12 +117,12 @@ Future<List<Gasto>> getAllGastosFromDb() async {
 
     List<Map<String, dynamic>> data = await db.query('gastos');
     List<Gasto> listaOriginal = data.map((e) {
-      return Gasto(
+     return Gasto(
           id: e['ID'],
           tipoGasto: e['tipoGasto'],
-          monto: e['monto'],
-          fecha: e['fecha'],
-          descripcion: e['color'],
+          monto: double.parse(e['monto'].toString()),
+          fecha: DateTime.parse(e['fecha']),
+          descripcion: e['descripcion'],
           vehiculoId: e['vehiculoId']);
     }).toList();
 
@@ -136,21 +142,21 @@ Future<List<Gasto>> getAllGastosFromDb() async {
       {
         'tipoGasto': gasto.tipoGasto,
         'monto': gasto.monto,
-        'fecha': gasto.fecha,
+        'fecha': gasto.fecha.toIso8601String(),
         'descripcion': gasto.descripcion,
         'vehiculoId': gasto.vehiculoId
       },
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
 
-    List<Map<String, dynamic>> data = await db.query('vehiculos');
+    List<Map<String, dynamic>> data = await db.query('gastos');
     List<Gasto> listaOriginal = data.map((e) {
       return Gasto(
           id: e['ID'],
           tipoGasto: e['tipoGasto'],
-          monto: e['monto'],
-          fecha: e['fecha'],
-          descripcion: e['color'],
+          monto: double.parse(e['monto'].toString()),
+          fecha: DateTime.parse(e['fecha']),
+          descripcion: e['descripcion'],
           vehiculoId: e['vehiculoId']);
     }).toList();
 

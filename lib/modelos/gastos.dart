@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 class Gasto with EquatableMixin {
-  final int id;
+  final int? id;
   final String tipoGasto;
   final double monto;
   final DateTime fecha;
@@ -9,7 +9,7 @@ class Gasto with EquatableMixin {
   final int vehiculoId;
 
   Gasto({
-    required this.id,
+    this.id,
     required this.tipoGasto,
     required this.monto,
     required this.fecha,
@@ -18,7 +18,7 @@ class Gasto with EquatableMixin {
   });
   
   @override
-  List<Object?> get props => [tipoGasto, monto, fecha, descripcion, vehiculoId];
+  List<Object?> get props => [id, tipoGasto, monto, fecha, descripcion, vehiculoId];
 
   @override
   bool get stringify => true;

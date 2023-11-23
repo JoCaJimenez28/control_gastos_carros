@@ -11,14 +11,15 @@ class DatabaseHelper {
   }
 
   Future<Database?> iniciarDatabase() async {
-    WidgetsFlutterBinding.ensureInitialized();
-    sqfliteFfiInit();
+    // WidgetsFlutterBinding.ensureInitialized();
+    // sqfliteFfiInit();
 
-    var fabricaBaseDatos = databaseFactoryFfi; //databasefactory
+    var fabricaBaseDatos = databaseFactory; //databasefactory
     String rutaBaseDatos;
 
     try {
-      rutaBaseDatos = await fabricaBaseDatos.getDatabasesPath() + "/database.db";
+      rutaBaseDatos =
+          await fabricaBaseDatos.getDatabasesPath() + "/databaseee.db";
       return dbGestor = await fabricaBaseDatos.openDatabase(
         rutaBaseDatos,
         options: OpenDatabaseOptions(
@@ -27,6 +28,16 @@ class DatabaseHelper {
             await db.execute(
               'CREATE TABLE vehiculos (ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, marca TEXT(35), modelo TEXT(35), anio TEXT(35), color TEXT(35));',
             );
+            // await db.execute('CREATE TABLE gastos (ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, tipoGasto TEXT(35), monto DECIMAL, fecha DATE, descripcion TEXT(80), vehiculoId INTEGER FOREIGN KEY (vehiculoId) REFERENCES vehiculos(id));',);
+            await db.execute('CREATE TABLE gastos ('
+                'ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, '
+                'tipoGasto TEXT(35), '
+                'monto DOUBLE, '
+                'fecha DATE, '
+                'descripcion TEXT(80), '
+                'vehiculoId INTEGER, '
+                'FOREIGN KEY (vehiculoId) REFERENCES vehiculos(ID)'
+                ');');
           },
         ),
       );
