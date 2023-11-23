@@ -78,31 +78,37 @@ class GastosBloc extends Bloc<GastoEvento, GastoEstado> {
     }
   }
 
-  void _updateGasto(UpdateGasto event, Emitter<GastoEstado> emit) {
-    List<Gasto> updatedGastos = List.from(state.gastos);
-    int index = updatedGastos
-        .indexWhere((gasto) => gasto.id == event.gasto.id);
-    print('lista sin actualizar: $updatedGastos ');
+  void _updateGasto(UpdateGasto event, Emitter<GastoEstado> emit) async {
+    Vehiculo? vehiculo = await this.context.read<VehiculosBlocDb>().getVehiculoById(event.gasto.vehiculoId);
 
-    if (index != -1) {
-      updatedGastos[index] = event.gasto;
-      print('Gasto actualizado: $updatedGastos ');
-      emit(GastoEstado(gastos: updatedGastos));
-      print('estado ${state.gastos}');
-    } else {
-      print('Vehículo no encontrado para actualizar');
+    if (vehiculo != null){
+      try {
+      Gasto? editGasto = event.gasto;
+      print("editGasto: $editGasto");
+
+      if (editGasto != null) {
+        _gastos = await updateGasto(event.gasto);
+        emit(GastoEstado(gastos: _gastos));
+        print('Gasto actualizado con éxito!');
+      } else {
+        // emitErrorSnackBar(emit, 'Vehículo no encontrado para actualizar.');
+        print("gasto no encontrado");
+      }
+    } catch (e) {
+      // emitErrorSnackBar(emit, 'Error al actualizar el vehículo: $e');
+      print("Error al actualizar el vehiculo");
+    }
     }
   }
 
-  void _deleteGasto(DeleteGasto event, Emitter<GastoEstado> emit) {
-    List<Gasto> updatedGastos = List.from(state.gastos);
-    if (_gastos.contains(event.gasto)) {
-      // _gastos = _gastos.copiar()..remove(event.gasto);
-      print('a eliminar; ${event.gasto}');
-      emit(GastoEstado(gastos: _gastos));
-      print('estado; ${state.gastos}');
-    } else {
-      print("no se encontro el vehiculo a eliminar");
+  void _deleteGasto(DeleteGasto event, Emitter<GastoEstado> emit) async {
+    try {
+      List<Gasto> updatedList = await deleteVehiculo(event.gasto);
+      emit(GastoEstado(gastos: updatedList));
+      print('Gasto eliminado con éxito!');
+    } catch (e) {
+      // emitErrorSnackBar(emit, 'Error al eliminar el vehículo: $e');
+      print("Error al borrar el gasto");
     }
   }
 }
@@ -163,7 +169,7 @@ Future<List<Gasto>> getAllGastosFromDb() async {
     return listaOriginal;
   }
 
-  Future<Vehiculo?> getVehiculoById(int id) async {
+  Future<Gasto?> getGastoById(int id) async {
     final Database? db = await DatabaseHelper().database;
 
     if (db == null) {
@@ -172,62 +178,33 @@ Future<List<Gasto>> getAllGastosFromDb() async {
     }
 
     List<Map<String, dynamic>> data = await db.query(
-      'vehiculos',
+      'gastos',
       where:
           'ID = ?',
       whereArgs: [id],
     );
 
     if (data.isNotEmpty) {
-      Map<String, dynamic> vehiculoData = data.first;
-      return Vehiculo(
-        id: vehiculoData['ID'],
-        marca: vehiculoData['marca'],
-        modelo: vehiculoData['modelo'],
-        anio: vehiculoData['anio'],
-        color: vehiculoData['color'],
+      Map<String, dynamic> gastoData = data.first;
+      return Gasto(
+        id: gastoData['ID'], 
+        tipoGasto: gastoData['tipoGasto'], 
+        monto: gastoData['monto'], 
+        fecha: gastoData['fecha'], 
+        descripcion: gastoData['descripcion'], 
+        vehiculoId: gastoData['vehiculoId']
       );
     } else {
-      print('Vehículo con id $id no encontrado.');
+      print('Gasto con id $id no encontrado.');
       return null;
     }
   }
 
-  Future<Vehiculo?> getVehiculoByModelo(String modelo) async {
-    final Database? db = await DatabaseHelper().database;
-
-    if (db == null) {
-      print('Error: Database not initialized.');
-      return null;
-    }
-
-    List<Map<String, dynamic>> data = await db.query(
-      'vehiculos',
-      where:
-          'modelo = ?', 
-      whereArgs: [modelo],
-    );
-
-    if (data.isNotEmpty) {
-      Map<String, dynamic> vehiculoData = data.first;
-      return Vehiculo(
-        id: vehiculoData['ID'],
-        marca: vehiculoData['marca'],
-        modelo: vehiculoData['modelo'],
-        anio: vehiculoData['anio'],
-        color: vehiculoData['color'],
-      );
-    } else {
-      print('Vehículo con modelo $modelo no encontrado.');
-      return null;
-    }
-  }
-
-  Future<List<Vehiculo>> updateVehiculo(Vehiculo? vehiculo) async {
+  Future<List<Gasto>> updateGasto(Gasto? gasto) async {
     final Database? db = await DatabaseHelper().database;
     print("entro al update");
-    if (vehiculo == null) {
-      print("no hay vehiculo");
+    if (gasto == null) {
+      print("no hay gasto");
       return [];
     }
 
@@ -237,32 +214,33 @@ Future<List<Gasto>> getAllGastosFromDb() async {
     }
 
     await db.update(
-      'vehiculos',
+      'gastos',
       {
-        'marca': vehiculo.marca,
-        'modelo': vehiculo.modelo,
-        'anio': vehiculo.anio,
-        'color': vehiculo.color
+        'tipoGasto': gasto.tipoGasto,
+        'monto': gasto.monto,
+        'fecha': gasto.fecha.toIso8601String(),
+        'descripcion': gasto.descripcion,
+        'vehiculoId': gasto.vehiculoId
       },
       where: 'ID = ?', 
-      whereArgs: [vehiculo.id], 
+      whereArgs: [gasto.id], 
     );
 
-    List<Map<String, dynamic>> data = await db.query('vehiculos');
-    List<Vehiculo> listaOriginal = data.map((e) {
-      return Vehiculo(
-        id: e['ID'],
-        marca: e['marca'],
-        modelo: e['modelo'],
-        anio: e['anio'],
-        color: e['color'],
-      );
+    List<Map<String, dynamic>> data = await db.query('gastos');
+    List<Gasto> listaOriginal = data.map((e) {
+      return Gasto(
+          id: e['ID'],
+          tipoGasto: e['tipoGasto'],
+          monto: double.parse(e['monto'].toString()),
+          fecha: DateTime.parse(e['fecha']),
+          descripcion: e['descripcion'],
+          vehiculoId: e['vehiculoId']);
     }).toList();
 
     return listaOriginal;
   }
 
-  Future<List<Vehiculo>> deleteVehiculo(Vehiculo vehiculo) async {
+  Future<List<Gasto>> deleteVehiculo(Gasto gasto) async {
     final Database? db = await DatabaseHelper().database;
 
     if (db == null) {
@@ -271,46 +249,21 @@ Future<List<Gasto>> getAllGastosFromDb() async {
     }
 
     await db.delete(
-      'vehiculos',
+      'gastos',
       where: 'ID = ?',
-      whereArgs: [vehiculo.id], 
+      whereArgs: [gasto.id], 
     );
 
-    List<Map<String, dynamic>> data = await db.query('vehiculos');
-    List<Vehiculo> updatedList = data.map((e) {
-      return Vehiculo(
-        id: e['ID'],
-        marca: e['marca'],
-        modelo: e['modelo'],
-        anio: e['anio'],
-        color: e['color'],
-      );
+    List<Map<String, dynamic>> data = await db.query('gastos');
+    List<Gasto> updatedList = data.map((e) {
+      return Gasto(
+          id: e['ID'],
+          tipoGasto: e['tipoGasto'],
+          monto: double.parse(e['monto'].toString()),
+          fecha: DateTime.parse(e['fecha']),
+          descripcion: e['descripcion'],
+          vehiculoId: e['vehiculoId']);
     }).toList();
 
     return updatedList;
   }
-
-
-Future<List<Vehiculo>> obtenerVehiculos() async {
-  final Database? db = await DatabaseHelper().database;
-  if (db == null) {
-    print('Error: Database not initialized.');
-    return [];
-  }
-  try {
-    final List<Map<String, dynamic>> maps = await db.query('vehiculos');
-
-    return List.generate(maps.length, (index) {
-      return Vehiculo(
-        id: maps[index]['ID'],
-        marca: maps[index]['marca'],
-        modelo: maps[index]['modelo'],
-        anio: maps[index]['anio'],
-        color: maps[index]['color'],
-      );
-    });
-  } catch (e) {
-    print('Error al obtener vehículos: $e');
-    throw Exception('Error al obtener vehículos: $e');
-  }
-}
