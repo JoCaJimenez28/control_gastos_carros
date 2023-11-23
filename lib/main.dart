@@ -1,4 +1,5 @@
-import 'package:control_gastos_carros/blocs/gastosBlocPrueba.dart';
+// import 'package:control_gastos_carros/blocs/gastosBlocPrueba.dart';
+import 'package:control_gastos_carros/blocs/gastosBlocDb.dart';
 import 'package:control_gastos_carros/blocs/vehiculosBlocDb.dart';
 import 'package:control_gastos_carros/database/database.dart';
 import 'package:control_gastos_carros/gastosScreen.dart';

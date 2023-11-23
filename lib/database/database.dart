@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 
 class DatabaseHelper {
   Database? dbGestor;
@@ -12,20 +11,15 @@ class DatabaseHelper {
   }
 
   Future<Database?> iniciarDatabase() async {
-    WidgetsFlutterBinding.ensureInitialized();
-    sqfliteFfiInit();
+    // WidgetsFlutterBinding.ensureInitialized();
+    // sqfliteFfiInit();
 
-    var fabricaBaseDatos = databaseFactoryFfi;
+    var fabricaBaseDatos = databaseFactory; //databasefactory
     String rutaBaseDatos;
 
     try {
-      // if (kIsWeb) {
-      //   databaseFactory = databaseFactoryFfiWeb;
-      //   rutaBaseDatos = "web/gastosdb.db"; // Provide a valid web path
-      // } else {
-      //   rutaBaseDatos = await fabricaBaseDatos.getDatabasesPath() + "/databasee.db";
-      // }
-      rutaBaseDatos = await fabricaBaseDatos.getDatabasesPath() + "/database.db";
+      rutaBaseDatos =
+          await fabricaBaseDatos.getDatabasesPath() + "/databaseee.db";
       return dbGestor = await fabricaBaseDatos.openDatabase(
         rutaBaseDatos,
         options: OpenDatabaseOptions(
@@ -34,6 +28,16 @@ class DatabaseHelper {
             await db.execute(
               'CREATE TABLE vehiculos (ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, marca TEXT(35), modelo TEXT(35), anio TEXT(35), color TEXT(35));',
             );
+            // await db.execute('CREATE TABLE gastos (ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, tipoGasto TEXT(35), monto DECIMAL, fecha DATE, descripcion TEXT(80), vehiculoId INTEGER FOREIGN KEY (vehiculoId) REFERENCES vehiculos(id));',);
+            await db.execute('CREATE TABLE gastos ('
+                'ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, '
+                'tipoGasto TEXT(35), '
+                'monto DOUBLE, '
+                'fecha DATE, '
+                'descripcion TEXT(80), '
+                'vehiculoId INTEGER, '
+                'FOREIGN KEY (vehiculoId) REFERENCES vehiculos(ID)'
+                ');');
           },
         ),
       );
@@ -44,3 +48,20 @@ class DatabaseHelper {
     }
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+      // if (kIsWeb) {
+      //   databaseFactory = databaseFactoryFfiWeb;
+      //   rutaBaseDatos = "web/gastosdb.db"; // Provide a valid web path
+      // } else {
+      //   rutaBaseDatos = await fabricaBaseDatos.getDatabasesPath() + "/databasee.db";
+      // }

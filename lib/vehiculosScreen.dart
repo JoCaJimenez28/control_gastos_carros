@@ -121,29 +121,44 @@ class _VehiculosScreenState extends State<VehiculosScreen> {
     );
   }
 
-  void _mostrarDialogoEditarVehiculo(BuildContext context, Vehiculo vehiculo) {
-    TextEditingController idController =
-        TextEditingController(text: vehiculo.id.toString());
-    TextEditingController marcaController =
-        TextEditingController(text: vehiculo.marca);
-    TextEditingController modeloController =
-        TextEditingController(text: vehiculo.modelo);
-    TextEditingController anioController =
-        TextEditingController(text: vehiculo.anio);
-    TextEditingController colorController =
-        TextEditingController(text: vehiculo.color);
+void _mostrarDialogoEditarVehiculo(BuildContext context, Vehiculo vehiculo) {
+  TextEditingController marcaController = TextEditingController(text: vehiculo.marca);
+  TextEditingController modeloController = TextEditingController(text: vehiculo.modelo);
+  TextEditingController anioController = TextEditingController(text: vehiculo.anio);
+  TextEditingController colorController = TextEditingController(text: vehiculo.color);
 
-    showModalBottomSheet(
-      context: context,
-      builder: (BuildContext context) {
-        return SingleChildScrollView(
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return Dialog(
+        child: SingleChildScrollView(
           child: Container(
             padding: EdgeInsets.all(24),
             child: Column(
               children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Editar Vehículo',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue,
+                      ),
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.close),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                  ],
+                ),
+                SizedBox(height: 16),
                 TextField(
                   decoration: InputDecoration(labelText: 'ID'),
-                  controller: idController,
+                  controller: TextEditingController(text: vehiculo.id.toString()),
                   enabled: false,
                 ),
                 TextField(
@@ -169,16 +184,16 @@ class _VehiculosScreenState extends State<VehiculosScreen> {
                     ElevatedButton(
                       onPressed: () {
                         context.read<VehiculosBlocDb>().add(
-                              UpdateVehiculo(
-                                vehiculo: Vehiculo(
-                                  id: vehiculo.id,
-                                  marca: marcaController.text,
-                                  modelo: modeloController.text,
-                                  anio: anioController.text,
-                                  color: colorController.text,
-                                ),
-                              ),
-                            );
+                          UpdateVehiculo(
+                            vehiculo: Vehiculo(
+                              id: vehiculo.id,
+                              marca: marcaController.text,
+                              modelo: modeloController.text,
+                              anio: anioController.text,
+                              color: colorController.text,
+                            ),
+                          ),
+                        );
 
                         Navigator.of(context).pop();
                       },
@@ -188,32 +203,60 @@ class _VehiculosScreenState extends State<VehiculosScreen> {
                       onPressed: () {
                         Navigator.of(context).pop();
                       },
-                      child: Text('Cancelar'),
+                      child: Text(
+                        'Cancelar',
+                        style: TextStyle(
+                          color: Colors.red,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
                   ],
                 ),
               ],
             ),
           ),
-        );
-      },
-    );
-  }
+        ),
+      );
+    },
+  );
+}
 
-  void _mostrarDialogoAgregarVehiculo(BuildContext context) {
-    TextEditingController marcaController = TextEditingController();
-    TextEditingController modeloController = TextEditingController();
-    TextEditingController anioController = TextEditingController();
-    TextEditingController colorController = TextEditingController();
+void _mostrarDialogoAgregarVehiculo(BuildContext context) {
+  TextEditingController marcaController = TextEditingController();
+  TextEditingController modeloController = TextEditingController();
+  TextEditingController anioController = TextEditingController();
+  TextEditingController colorController = TextEditingController();
 
-    showModalBottomSheet(
-      context: context,
-      builder: (BuildContext context) {
-        return SingleChildScrollView(
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return Dialog(
+        child: SingleChildScrollView(
           child: Container(
             padding: EdgeInsets.all(24),
             child: Column(
               children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Nuevo Vehículo',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue,
+                      ),
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.close),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                  ],
+                ),
+                SizedBox(height: 16),
                 TextField(
                   decoration: InputDecoration(labelText: 'Marca'),
                   controller: marcaController,
@@ -231,30 +274,182 @@ class _VehiculosScreenState extends State<VehiculosScreen> {
                   controller: colorController,
                 ),
                 SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: () {
-                    context.read<VehiculosBlocDb>().add(
-                          AddVehiculo(
-                            vehiculo: Vehiculo(
-                              marca: marcaController.text,
-                              modelo: modeloController.text,
-                              anio: anioController.text,
-                              color: colorController.text,
-                            ),
-                          ),
-                        );
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    ElevatedButton(
+                      onPressed: () {
+                        context.read<VehiculosBlocDb>().add(
+                              AddVehiculo(
+                                vehiculo: Vehiculo(
+                                  marca: marcaController.text,
+                                  modelo: modeloController.text,
+                                  anio: anioController.text,
+                                  color: colorController.text,
+                                ),
+                              ),
+                            );
 
-                    Navigator.of(context).pop();
-                  },
-                  child: Text('Guardar'),
+                        Navigator.of(context).pop();
+                      },
+                      child: Text('Guardar'),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                      child: Text(
+                        'Cancelar',
+                        style: TextStyle(
+                          color: Colors.red,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
-        );
-      },
-    );    
-  }
+        ),
+      );
+    },
+  );
+}
+  // void _mostrarDialogoAgregarVehiculo(BuildContext context) {
+  //   TextEditingController marcaController = TextEditingController();
+  //   TextEditingController modeloController = TextEditingController();
+  //   TextEditingController anioController = TextEditingController();
+  //   TextEditingController colorController = TextEditingController();
+
+  //   showModalBottomSheet(
+  //     context: context,
+  //     builder: (BuildContext context) {
+  //       return SingleChildScrollView(
+  //         child: Container(
+  //           padding: EdgeInsets.all(24),
+  //           child: Column(
+  //             children: [
+  //               TextField(
+  //                 decoration: InputDecoration(labelText: 'Marca'),
+  //                 controller: marcaController,
+  //               ),
+  //               TextField(
+  //                 decoration: InputDecoration(labelText: 'Modelo'),
+  //                 controller: modeloController,
+  //               ),
+  //               TextField(
+  //                 decoration: InputDecoration(labelText: 'Año'),
+  //                 controller: anioController,
+  //               ),
+  //               TextField(
+  //                 decoration: InputDecoration(labelText: 'Color'),
+  //                 controller: colorController,
+  //               ),
+  //               SizedBox(height: 16),
+  //               ElevatedButton(
+  //                 onPressed: () {
+  //                   context.read<VehiculosBlocDb>().add(
+  //                         AddVehiculo(
+  //                           vehiculo: Vehiculo(
+  //                             marca: marcaController.text,
+  //                             modelo: modeloController.text,
+  //                             anio: anioController.text,
+  //                             color: colorController.text,
+  //                           ),
+  //                         ),
+  //                       );
+
+  //                   Navigator.of(context).pop();
+  //                 },
+  //                 child: Text('Guardar'),
+  //               ),
+  //             ],
+  //           ),
+  //         ),
+  //       );
+  //     },
+  //   );    
+  // }
+
+  // void _mostrarDialogoEditarVehiculo(BuildContext context, Vehiculo vehiculo) {
+  //   TextEditingController idController =
+  //       TextEditingController(text: vehiculo.id.toString());
+  //   TextEditingController marcaController =
+  //       TextEditingController(text: vehiculo.marca);
+  //   TextEditingController modeloController =
+  //       TextEditingController(text: vehiculo.modelo);
+  //   TextEditingController anioController =
+  //       TextEditingController(text: vehiculo.anio);
+  //   TextEditingController colorController =
+  //       TextEditingController(text: vehiculo.color);
+
+  //   showModalBottomSheet(
+  //     context: context,
+  //     builder: (BuildContext context) {
+  //       return SingleChildScrollView(
+  //         child: Container(
+  //           padding: EdgeInsets.all(24),
+  //           child: Column(
+  //             children: [
+  //               TextField(
+  //                 decoration: InputDecoration(labelText: 'ID'),
+  //                 controller: idController,
+  //                 enabled: false,
+  //               ),
+  //               TextField(
+  //                 decoration: InputDecoration(labelText: 'Marca'),
+  //                 controller: marcaController,
+  //               ),
+  //               TextField(
+  //                 decoration: InputDecoration(labelText: 'Modelo'),
+  //                 controller: modeloController,
+  //               ),
+  //               TextField(
+  //                 decoration: InputDecoration(labelText: 'Año'),
+  //                 controller: anioController,
+  //               ),
+  //               TextField(
+  //                 decoration: InputDecoration(labelText: 'Color'),
+  //                 controller: colorController,
+  //               ),
+  //               SizedBox(height: 16),
+  //               Row(
+  //                 mainAxisAlignment: MainAxisAlignment.spaceAround,
+  //                 children: [
+  //                   ElevatedButton(
+  //                     onPressed: () {
+  //                       context.read<VehiculosBlocDb>().add(
+  //                             UpdateVehiculo(
+  //                               vehiculo: Vehiculo(
+  //                                 id: vehiculo.id,
+  //                                 marca: marcaController.text,
+  //                                 modelo: modeloController.text,
+  //                                 anio: anioController.text,
+  //                                 color: colorController.text,
+  //                               ),
+  //                             ),
+  //                           );
+
+  //                       Navigator.of(context).pop();
+  //                     },
+  //                     child: Text('Guardar'),
+  //                   ),
+  //                   TextButton(
+  //                     onPressed: () {
+  //                       Navigator.of(context).pop();
+  //                     },
+  //                     child: Text('Cancelar'),
+  //                   ),
+  //                 ],
+  //               ),
+  //             ],
+  //           ),
+  //         ),
+  //       );
+  //     },
+  //   );
+  // }
 
   void _mostrarSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
