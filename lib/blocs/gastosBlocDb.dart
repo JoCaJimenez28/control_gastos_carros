@@ -103,7 +103,7 @@ class GastosBloc extends Bloc<GastoEvento, GastoEstado> {
 
   void _deleteGasto(DeleteGasto event, Emitter<GastoEstado> emit) async {
     try {
-      List<Gasto> updatedList = await deleteVehiculo(event.gasto);
+      List<Gasto> updatedList = await deleteGasto(event.gasto);
       emit(GastoEstado(gastos: updatedList));
       print('Gasto eliminado con éxito!');
     } catch (e) {
@@ -129,6 +129,7 @@ Future<List<Gasto>> getAllGastosFromDb() async {
           monto: double.parse(e['monto'].toString()),
           fecha: DateTime.parse(e['fecha']),
           descripcion: e['descripcion'],
+          categoriaId: e['categoriaId'],
           vehiculoId: e['vehiculoId']);
     }).toList();
 
@@ -150,6 +151,7 @@ Future<List<Gasto>> getAllGastosFromDb() async {
         'monto': gasto.monto,
         'fecha': gasto.fecha.toIso8601String(),
         'descripcion': gasto.descripcion,
+        'categoriaId': gasto.categoriaId,
         'vehiculoId': gasto.vehiculoId
       },
       conflictAlgorithm: ConflictAlgorithm.replace,
@@ -163,13 +165,14 @@ Future<List<Gasto>> getAllGastosFromDb() async {
           monto: double.parse(e['monto'].toString()),
           fecha: DateTime.parse(e['fecha']),
           descripcion: e['descripcion'],
+          categoriaId: e['categoriaId'],
           vehiculoId: e['vehiculoId']);
     }).toList();
 
     return listaOriginal;
   }
 
-  Future<Gasto?> getGastoById(int id) async {
+  Future<Gasto?> getGastoById(int? id) async {
     final Database? db = await DatabaseHelper().database;
 
     if (db == null) {
@@ -177,26 +180,29 @@ Future<List<Gasto>> getAllGastosFromDb() async {
       return null;
     }
 
-    List<Map<String, dynamic>> data = await db.query(
-      'gastos',
-      where:
-          'ID = ?',
-      whereArgs: [id],
-    );
-
-    if (data.isNotEmpty) {
-      Map<String, dynamic> gastoData = data.first;
-      return Gasto(
-        id: gastoData['ID'], 
-        tipoGasto: gastoData['tipoGasto'], 
-        monto: gastoData['monto'], 
-        fecha: gastoData['fecha'], 
-        descripcion: gastoData['descripcion'], 
-        vehiculoId: gastoData['vehiculoId']
+    if(id != null){
+        List<Map<String, dynamic>> data = await db.query(
+        'gastos',
+        where:
+            'ID = ?',
+        whereArgs: [id],
       );
-    } else {
-      print('Gasto con id $id no encontrado.');
-      return null;
+
+      if (data.isNotEmpty) {
+        Map<String, dynamic> gastoData = data.first;
+        return Gasto(
+          id: gastoData['ID'], 
+          tipoGasto: gastoData['tipoGasto'], 
+          monto: gastoData['monto'], 
+          fecha: gastoData['fecha'], 
+          descripcion: gastoData['descripcion'], 
+          categoriaId: gastoData['categoriaId'],
+          vehiculoId: gastoData['vehiculoId']
+        );
+      } else {
+        print('Gasto con id $id no encontrado.');
+        return null;
+      }
     }
   }
 
@@ -220,6 +226,7 @@ Future<List<Gasto>> getAllGastosFromDb() async {
         'monto': gasto.monto,
         'fecha': gasto.fecha.toIso8601String(),
         'descripcion': gasto.descripcion,
+        'categoriaId': gasto.categoriaId,
         'vehiculoId': gasto.vehiculoId
       },
       where: 'ID = ?', 
@@ -234,13 +241,14 @@ Future<List<Gasto>> getAllGastosFromDb() async {
           monto: double.parse(e['monto'].toString()),
           fecha: DateTime.parse(e['fecha']),
           descripcion: e['descripcion'],
+          categoriaId: e['categoriaId'],
           vehiculoId: e['vehiculoId']);
     }).toList();
 
     return listaOriginal;
   }
 
-  Future<List<Gasto>> deleteVehiculo(Gasto gasto) async {
+  Future<List<Gasto>> deleteGasto(Gasto gasto) async {
     final Database? db = await DatabaseHelper().database;
 
     if (db == null) {
@@ -262,6 +270,7 @@ Future<List<Gasto>> getAllGastosFromDb() async {
           monto: double.parse(e['monto'].toString()),
           fecha: DateTime.parse(e['fecha']),
           descripcion: e['descripcion'],
+          categoriaId: e['categoriaId'],
           vehiculoId: e['vehiculoId']);
     }).toList();
 

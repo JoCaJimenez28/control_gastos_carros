@@ -1,8 +1,11 @@
 // import 'package:control_gastos_carros/blocs/gastosBlocPrueba.dart';
+import 'package:control_gastos_carros/CategoriasDialog.dart';
+import 'package:control_gastos_carros/blocs/categoriasBlocDb.dart';
 import 'package:control_gastos_carros/blocs/gastosBlocDb.dart';
 import 'package:control_gastos_carros/blocs/vehiculosBlocDb.dart';
 import 'package:control_gastos_carros/database/database.dart';
 import 'package:control_gastos_carros/gastosScreen.dart';
+import 'package:control_gastos_carros/modelos/categorias.dart';
 import 'package:control_gastos_carros/vehiculosScreen.dart';
 // import 'package:control_gastos_carros/blocs/vehiculosBlocPrueba.dart';
 import 'package:flutter/material.dart';
@@ -10,23 +13,15 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:control_gastos_carros/modelos/vehiculos.dart';
 
 void main() async {
-  // Vehiculo vehiculoEjemplo = Vehiculo(
-  //   id: 1,
-  //   marca: 'Ejemplo',
-  //   modelo: 'Modelo ejemplo',
-  //   anio: '2022',
-  //   color: 'Rojo',
-  // );
-
-  // VehiculosBloc vehiculosBloc = VehiculosBloc();
-  // vehiculosBloc.add(AddVehiculo(vehiculo: vehiculoEjemplo));
   WidgetsFlutterBinding.ensureInitialized();
 
   DatabaseHelper dbHelper = DatabaseHelper();
   await dbHelper.iniciarDatabase();
-  
+
   runApp(MyApp());
 }
+
+Widget? currentScreen;
 
 class MyApp extends StatelessWidget {
   @override
@@ -35,6 +30,9 @@ class MyApp extends StatelessWidget {
       providers: [
         BlocProvider<VehiculosBlocDb>(
           create: (context) => VehiculosBlocDb()..add(VehiculosInicializado()),
+        ),
+        BlocProvider<CategoriasBloc>(
+          create: (context) => CategoriasBloc()..add(Categoriasinicializado()),
         ),
         BlocProvider<GastosBloc>(
           create: (context) => GastosBloc(context)..add(GastosInicializado()),
@@ -47,6 +45,29 @@ class MyApp extends StatelessWidget {
           child: Scaffold(
             appBar: AppBar(
               title: Text('Control de Gastos'),
+              actions: [
+                PopupMenuButton<String>(
+                  onSelected: (value) {
+                    if (value == 'ver_categorias') {
+                      print('Ver Categorias');
+                      showDialog(
+                          context: context, 
+                          builder: (BuildContext context) {
+                            return CategoriasDialog();
+                          }
+                      );
+                    }
+                  },
+                  itemBuilder: (BuildContext context) {
+                    return [
+                      PopupMenuItem<String>(
+                        value: 'ver_categorias',
+                        child: Text('Ver Categorias'),
+                      ),
+                    ];
+                  },
+                ),
+              ],
               bottom: TabBar(
                 tabs: [
                   Tab(text: 'Vehículos'),
@@ -67,7 +88,49 @@ class MyApp extends StatelessWidget {
   }
 }
 
+void mostrarDialogoVerCategorias(BuildContext context) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return Dialog(
+        child: BlocBuilder<CategoriasBloc, CategoriasEstado>(
+          builder: (context, state) {
+            if (state is CategoriasEstado) {
+              List<Categoria> categorias = state.categorias;
 
+              return SingleChildScrollView(
+                child: Column(
+                  children: [
+                    for (Categoria categoria in categorias)
+                      ListTile(
+                        title: Text(categoria.nombre),
+                        trailing: IconButton(
+                          icon: Icon(Icons.delete),
+                          onPressed: () {
+                            // Handle delete category action
+                            context.read<CategoriasBloc>().add(
+                                  DeleteCategoria(
+                                    categoria: categoria,
+                                  ),
+                                );
+                            Navigator.of(context).pop(); // Close the dialog
+                          },
+                        ),
+                      ),
+                  ],
+                ),
+              );
+            } else {
+              return Center(
+                child: CircularProgressIndicator(),
+              );
+            }
+          },
+        ),
+      );
+    },
+  );
+}
 // class MyApp extends StatelessWidget {
 //   @override
 //   Widget build(BuildContext context) {

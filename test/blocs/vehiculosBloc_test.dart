@@ -8,10 +8,10 @@ void main() {
   blocTest<VehiculosBloc, VehiculoEstado>(
       'emite un nuevo estado con el vehículo agregado',
       build: () => VehiculosBloc()..add(VehiculosInicializado()),
-      act: (bloc) => bloc.add(AddVehiculo(vehiculo: Vehiculo(id: 3, marca: 'Toyota', modelo: 'Corolla', anio: '2022', color: 'Azul'))),
+      act: (bloc) => bloc.add(AddVehiculo(vehiculo: Vehiculo(id: 3, marca: 'Toyota', placa: 'VSA-3456', modelo: 'Corolla', anio: '2022', color: 'Azul'))),
       expect: () => [
-        VehiculoEstado(vehiculos: [Vehiculo(id: 1, marca: 'vw', modelo: 'vocho', anio: '2002', color: 'rojo'), Vehiculo(id: 2, marca: 'nissan', modelo: 'sentra', anio: '2003', color: 'azul')]),
-        VehiculoEstado(vehiculos: [Vehiculo(id: 1, marca: 'vw', modelo: 'vocho', anio: '2002', color: 'rojo'), Vehiculo(id: 2, marca: 'nissan', modelo: 'sentra', anio: '2003', color: 'azul'),Vehiculo(id: 3, marca: 'Toyota', modelo: 'Corolla', anio: '2022', color: 'Azul')]),
+        VehiculoEstado(vehiculos: [Vehiculo(id: 1, marca: 'vw', placa: 'VSA-1234', modelo: 'vocho', anio: '2002', color: 'rojo'), Vehiculo(id: 2, marca: 'nissan', placa: 'VSA-2345', modelo: 'sentra', anio: '2003', color: 'azul')]),
+        VehiculoEstado(vehiculos: [Vehiculo(id: 1, marca: 'vw', placa: 'VSA-1234', modelo: 'vocho', anio: '2002', color: 'rojo'), Vehiculo(id: 2, marca: 'nissan', placa: 'VSA-2345', modelo: 'sentra', anio: '2003', color: 'azul'),Vehiculo(id: 3, marca: 'Toyota', placa: 'VSA-3456', modelo: 'Corolla', anio: '2022', color: 'Azul')]),
       ],
   );
 
@@ -19,34 +19,34 @@ void main() {
       'agregando 2 vehiculos',
       build: () => VehiculosBloc()..add(VehiculosInicializado()),
       act: (bloc){
-        bloc.add(AddVehiculo(vehiculo: Vehiculo(id: 3, marca: 'Toyota', modelo: 'Corolla', anio: '2022', color: 'Azul')));
-        bloc.add(AddVehiculo(vehiculo: Vehiculo(id: 4, marca: 'Nissan', modelo: 'Altima', anio: '2001', color: 'Gris')));
+        bloc.add(AddVehiculo(vehiculo: Vehiculo(id: 3, marca: 'Toyota', placa: 'VSA-3456', modelo: 'Corolla', anio: '2022', color: 'Azul')));
+        bloc.add(AddVehiculo(vehiculo: Vehiculo(id: 4, marca: 'Nissan', placa: 'VSA-4567', modelo: 'Altima', anio: '2001', color: 'Gris')));
       },
       expect: () => [
-        VehiculoEstado(vehiculos: [Vehiculo(id: 1, marca: 'vw', modelo: 'vocho', anio: '2002', color: 'rojo'), Vehiculo(id: 2, marca: 'nissan', modelo: 'sentra', anio: '2003', color: 'azul')]),
-        VehiculoEstado(vehiculos: [Vehiculo(id: 1, marca: 'vw', modelo: 'vocho', anio: '2002', color: 'rojo'), Vehiculo(id: 2, marca: 'nissan', modelo: 'sentra', anio: '2003', color: 'azul'),Vehiculo(id: 3, marca: 'Toyota', modelo: 'Corolla', anio: '2022', color: 'Azul')]),
-        VehiculoEstado(vehiculos: [Vehiculo(id: 1, marca: 'vw', modelo: 'vocho', anio: '2002', color: 'rojo'), Vehiculo(id: 2, marca: 'nissan', modelo: 'sentra', anio: '2003', color: 'azul'),
-        Vehiculo(id: 3, marca: 'Toyota', modelo: 'Corolla', anio: '2022', color: 'Azul'), Vehiculo(id: 4, marca: 'Nissan', modelo: 'Altima', anio: '2001', color: 'Gris')]),
+        VehiculoEstado(vehiculos: [Vehiculo(id: 1, marca: 'vw', placa: 'VSA-1234', modelo: 'vocho', anio: '2002', color: 'rojo'), Vehiculo(id: 2, marca: 'nissan', placa: 'VSA-2345', modelo: 'sentra', anio: '2003', color: 'azul')]),
+        VehiculoEstado(vehiculos: [Vehiculo(id: 1, marca: 'vw', placa: 'VSA-1234', modelo: 'vocho', anio: '2002', color: 'rojo'), Vehiculo(id: 2, marca: 'nissan', placa: 'VSA-2345', modelo: 'sentra', anio: '2003', color: 'azul'),Vehiculo(id: 3, marca: 'Toyota', placa: 'VSA-3456', modelo: 'Corolla', anio: '2022', color: 'Azul')]),
+        VehiculoEstado(vehiculos: [Vehiculo(id: 1, marca: 'vw', placa: 'VSA-1234', modelo: 'vocho', anio: '2002', color: 'rojo'), Vehiculo(id: 2, marca: 'nissan', placa: 'VSA-2345', modelo: 'sentra', anio: '2003', color: 'azul'),
+        Vehiculo(id: 3, marca: 'Toyota', placa: 'VSA-3456', modelo: 'Corolla', anio: '2022', color: 'Azul'), Vehiculo(id: 4, marca: 'Nissan', placa: 'VSA-4567', modelo: 'Altima', anio: '2001', color: 'Gris')]),
       ],
   );
 
   blocTest<VehiculosBloc, VehiculoEstado>(
   'emite un nuevo estado con el vehículo actualizado',
   build: () => VehiculosBloc()..add(VehiculosInicializado()),
-  act: (bloc) => bloc.add(UpdateVehiculo(vehiculo: Vehiculo(id: 1, marca: 'Toyota', modelo: 'Camry', anio: '2022', color: 'Rojo'))),
+  act: (bloc) => bloc.add(UpdateVehiculo(vehiculo: Vehiculo(id: 1, marca: 'Toyota', placa: 'VSA-1234', modelo: 'Camry', anio: '2022', color: 'Rojo'))),
   expect: () => [
-    VehiculoEstado(vehiculos: [Vehiculo(id: 1, marca: 'vw', modelo: 'vocho', anio: '2002', color: 'rojo'), Vehiculo(id: 2, marca: 'nissan', modelo: 'sentra', anio: '2003', color: 'azul')]),
-    VehiculoEstado(vehiculos: [Vehiculo(id: 1, marca: 'Toyota', modelo: 'Camry', anio: '2022', color: 'Rojo'), Vehiculo(id: 2, marca: 'nissan', modelo: 'sentra', anio: '2003', color: 'azul')]),
+    VehiculoEstado(vehiculos: [Vehiculo(id: 1, marca: 'vw', placa: 'VSA-1234', modelo: 'vocho', anio: '2002', color: 'rojo'), Vehiculo(id: 2, marca: 'nissan', placa: 'VSA-2345', modelo: 'sentra', anio: '2003', color: 'azul')]),
+    VehiculoEstado(vehiculos: [Vehiculo(id: 1, marca: 'Toyota', placa: 'VSA-1234', modelo: 'Camry', anio: '2022', color: 'Rojo'), Vehiculo(id: 2, marca: 'nissan', placa: 'VSA-2345', modelo: 'sentra', anio: '2003', color: 'azul')]),
   ],
 );
 
 blocTest<VehiculosBloc, VehiculoEstado>(
       'emite un nuevo estado sin el vehículo eliminado',
       build: () => VehiculosBloc()..add(VehiculosInicializado()),
-      act: (bloc) => bloc.add(DeleteVehiculo(vehiculo: Vehiculo(id: 1, marca: 'vw', modelo: 'vocho', anio: '2002', color: 'rojo'))),
+      act: (bloc) => bloc.add(DeleteVehiculo(vehiculo: Vehiculo(id: 1, marca: 'vw', placa: 'VSA-1234', modelo: 'vocho', anio: '2002', color: 'rojo'))),
       expect: () => [
-        VehiculoEstado(vehiculos: [Vehiculo(id: 1, marca: 'vw', modelo: 'vocho', anio: '2002', color: 'rojo'), Vehiculo(id: 2, marca: 'nissan', modelo: 'sentra', anio: '2003', color: 'azul')]),
-        VehiculoEstado(vehiculos: [Vehiculo(id: 2, marca: 'nissan', modelo: 'sentra', anio: '2003', color: 'azul')]),
+        VehiculoEstado(vehiculos: [Vehiculo(id: 1, marca: 'vw', placa: 'VSA-1234', modelo: 'vocho', anio: '2002', color: 'rojo'), Vehiculo(id: 2, marca: 'nissan', placa: 'VSA-2345', modelo: 'sentra', anio: '2003', color: 'azul')]),
+        VehiculoEstado(vehiculos: [Vehiculo(id: 2, marca: 'nissan', placa: 'VSA-2345', modelo: 'sentra', anio: '2003', color: 'azul')]),
       ],
     );
 

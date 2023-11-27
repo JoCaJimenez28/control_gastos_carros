@@ -2,6 +2,8 @@ import 'package:control_gastos_carros/blocs/vehiculosBlocDb.dart';
 import 'package:control_gastos_carros/modelos/vehiculos.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:datetime_picker_formfield_new/datetime_picker_formfield.dart';
+import 'package:intl/intl.dart';
 
 class VehiculosScreen extends StatefulWidget {
   @override
@@ -121,201 +123,265 @@ class _VehiculosScreenState extends State<VehiculosScreen> {
     );
   }
 
-void _mostrarDialogoEditarVehiculo(BuildContext context, Vehiculo vehiculo) {
-  TextEditingController marcaController = TextEditingController(text: vehiculo.marca);
-  TextEditingController modeloController = TextEditingController(text: vehiculo.modelo);
-  TextEditingController anioController = TextEditingController(text: vehiculo.anio);
-  TextEditingController colorController = TextEditingController(text: vehiculo.color);
+  String formatYearDate(DateTime date) {
+    return DateFormat('yyyy').format(date);
+  }
 
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return Dialog(
-        child: SingleChildScrollView(
-          child: Container(
-            padding: EdgeInsets.all(24),
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Editar Vehículo',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.blue,
-                      ),
-                    ),
-                    IconButton(
-                      icon: Icon(Icons.close),
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
-                    ),
-                  ],
-                ),
-                SizedBox(height: 16),
-                TextField(
-                  decoration: InputDecoration(labelText: 'ID'),
-                  controller: TextEditingController(text: vehiculo.id.toString()),
-                  enabled: false,
-                ),
-                TextField(
-                  decoration: InputDecoration(labelText: 'Marca'),
-                  controller: marcaController,
-                ),
-                TextField(
-                  decoration: InputDecoration(labelText: 'Modelo'),
-                  controller: modeloController,
-                ),
-                TextField(
-                  decoration: InputDecoration(labelText: 'Año'),
-                  controller: anioController,
-                ),
-                TextField(
-                  decoration: InputDecoration(labelText: 'Color'),
-                  controller: colorController,
-                ),
-                SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    ElevatedButton(
-                      onPressed: () {
-                        context.read<VehiculosBlocDb>().add(
-                          UpdateVehiculo(
-                            vehiculo: Vehiculo(
-                              id: vehiculo.id,
-                              marca: marcaController.text,
-                              modelo: modeloController.text,
-                              anio: anioController.text,
-                              color: colorController.text,
-                            ),
-                          ),
-                        );
+  void _mostrarDialogoEditarVehiculo(BuildContext context, Vehiculo vehiculo) {
+    TextEditingController marcaController =
+        TextEditingController(text: vehiculo.marca);
+    TextEditingController placaController =
+        TextEditingController(text: vehiculo.placa);
+    TextEditingController modeloController =
+        TextEditingController(text: vehiculo.modelo);
+    TextEditingController anioController =
+        TextEditingController(text: vehiculo.anio);
+    TextEditingController colorController =
+        TextEditingController(text: vehiculo.color);
 
-                        Navigator.of(context).pop();
-                      },
-                      child: Text('Guardar'),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
-                      child: Text(
-                        'Cancelar',
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          child: SingleChildScrollView(
+            child: Container(
+              padding: EdgeInsets.all(24),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Editar Vehículo',
                         style: TextStyle(
-                          color: Colors.red,
+                          fontSize: 24,
                           fontWeight: FontWeight.bold,
+                          color: Colors.blue,
                         ),
                       ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    },
-  );
-}
-
-void _mostrarDialogoAgregarVehiculo(BuildContext context) {
-  TextEditingController marcaController = TextEditingController();
-  TextEditingController modeloController = TextEditingController();
-  TextEditingController anioController = TextEditingController();
-  TextEditingController colorController = TextEditingController();
-
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return Dialog(
-        child: SingleChildScrollView(
-          child: Container(
-            padding: EdgeInsets.all(24),
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Nuevo Vehículo',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.blue,
+                      IconButton(
+                        icon: Icon(Icons.close),
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
                       ),
-                    ),
-                    IconButton(
-                      icon: Icon(Icons.close),
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
-                    ),
-                  ],
-                ),
-                SizedBox(height: 16),
-                TextField(
-                  decoration: InputDecoration(labelText: 'Marca'),
-                  controller: marcaController,
-                ),
-                TextField(
-                  decoration: InputDecoration(labelText: 'Modelo'),
-                  controller: modeloController,
-                ),
-                TextField(
-                  decoration: InputDecoration(labelText: 'Año'),
-                  controller: anioController,
-                ),
-                TextField(
-                  decoration: InputDecoration(labelText: 'Color'),
-                  controller: colorController,
-                ),
-                SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    ElevatedButton(
-                      onPressed: () {
-                        context.read<VehiculosBlocDb>().add(
-                              AddVehiculo(
-                                vehiculo: Vehiculo(
-                                  marca: marcaController.text,
-                                  modelo: modeloController.text,
-                                  anio: anioController.text,
-                                  color: colorController.text,
+                    ],
+                  ),
+                  SizedBox(height: 16),
+                  TextField(
+                    decoration: InputDecoration(labelText: 'ID'),
+                    controller:
+                        TextEditingController(text: vehiculo.id.toString()),
+                    enabled: false,
+                  ),
+                  TextField(
+                    decoration: InputDecoration(labelText: 'Marca'),
+                    controller: marcaController,
+                  ),
+                  TextField(
+                    decoration: InputDecoration(labelText: 'Placa'),
+                    controller: placaController,
+                  ),
+                  TextField(
+                    decoration: InputDecoration(labelText: 'Modelo'),
+                    controller: modeloController,
+                  ),
+                  TextField(
+                    decoration: InputDecoration(labelText: 'Año'),
+                    controller: anioController,
+                  ),
+                  TextField(
+                    decoration: InputDecoration(labelText: 'Color'),
+                    controller: colorController,
+                  ),
+                  SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      ElevatedButton(
+                        onPressed: () {
+                          context.read<VehiculosBlocDb>().add(
+                                UpdateVehiculo(
+                                  vehiculo: Vehiculo(
+                                    id: vehiculo.id,
+                                    placa: placaController.text,
+                                    marca: marcaController.text,
+                                    modelo: modeloController.text,
+                                    anio: anioController.text,
+                                    color: colorController.text,
+                                  ),
                                 ),
-                              ),
-                            );
+                              );
 
-                        Navigator.of(context).pop();
-                      },
-                      child: Text('Guardar'),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
-                      child: Text(
-                        'Cancelar',
-                        style: TextStyle(
-                          color: Colors.red,
-                          fontWeight: FontWeight.bold,
+                          Navigator.of(context).pop();
+                        },
+                        child: Text('Guardar'),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        child: Text(
+                          'Cancelar',
+                          style: TextStyle(
+                            color: Colors.red,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-              ],
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
-      );
-    },
-  );
-}
+        );
+      },
+    );
+  }
+
+  void _mostrarDialogoAgregarVehiculo(BuildContext context) {
+    TextEditingController marcaController = TextEditingController();
+    TextEditingController placaController = TextEditingController();
+    TextEditingController modeloController = TextEditingController();
+    TextEditingController anioController = TextEditingController();
+    TextEditingController colorController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          child: SingleChildScrollView(
+            child: Container(
+              padding: EdgeInsets.all(24),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Nuevo Vehículo',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue,
+                        ),
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.close),
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 16),
+                  TextField(
+                    decoration: InputDecoration(labelText: 'Marca'),
+                    controller: marcaController,
+                  ),
+                  TextField(
+                    decoration: InputDecoration(labelText: 'Placa'),
+                    controller: placaController,
+                  ),
+                  TextField(
+                    decoration: InputDecoration(labelText: 'Modelo'),
+                    controller: modeloController,
+                  ),
+                  // TextField(
+                  //   decoration: InputDecoration(labelText: 'Año'),
+                  //   controller: anioController,
+                  // ),
+                  DateTimeField(
+                    decoration: InputDecoration(labelText: 'Año'),
+                    format: DateFormat("yyyy"),
+                    initialValue: DateTime.now(),
+                    onChanged: (date) {
+                      print('date: $date');
+                      setState(() {
+                        if (date != null) {
+                          var selectedDate = date;
+                          anioController.text = formatYearDate(selectedDate);
+                        }
+                      });
+                    },
+                    onShowPicker: (context, currentValue) async {
+                      final date = await showDialog<DateTime>(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: Text('Seleccione un Año'),
+                            content: Container(
+                              height: 200,
+                              width: 200,
+                              child: YearPicker(
+                                firstDate: DateTime(2000),
+                                lastDate: DateTime.now(),
+                                selectedDate: currentValue ?? DateTime.now(),
+                                onChanged: (DateTime value) {
+                                  setState(() {
+                                    currentValue = value;
+                                    anioController.text = value.year.toString();
+                                    Navigator.of(context).pop();
+                                  });
+                                },
+                              ),
+                            ),
+                          );
+                        },
+                      );
+
+                      return date;
+                    },
+                  ),
+                  TextField(
+                    decoration: InputDecoration(labelText: 'Color'),
+                    controller: colorController,
+                  ),
+                  SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      ElevatedButton(
+                        onPressed: () {
+                          context.read<VehiculosBlocDb>().add(
+                                AddVehiculo(
+                                  vehiculo: Vehiculo(
+                                    marca: marcaController.text,
+                                    placa: placaController.text,
+                                    modelo: modeloController.text,
+                                    anio: anioController.text,
+                                    color: colorController.text,
+                                  ),
+                                ),
+                              );
+
+                          Navigator.of(context).pop();
+                        },
+                        child: Text('Guardar'),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        child: Text(
+                          'Cancelar',
+                          style: TextStyle(
+                            color: Colors.red,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
   // void _mostrarDialogoAgregarVehiculo(BuildContext context) {
   //   TextEditingController marcaController = TextEditingController();
   //   TextEditingController modeloController = TextEditingController();
@@ -369,7 +435,7 @@ void _mostrarDialogoAgregarVehiculo(BuildContext context) {
   //         ),
   //       );
   //     },
-  //   );    
+  //   );
   // }
 
   // void _mostrarDialogoEditarVehiculo(BuildContext context, Vehiculo vehiculo) {
