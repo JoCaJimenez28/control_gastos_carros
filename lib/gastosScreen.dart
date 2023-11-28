@@ -53,7 +53,8 @@ class _GastosScreenState extends State<GastosScreen> {
             onSelected: (value) {
               // Manejar la opción seleccionada
               if (value == 'ver_categorias') {
-                _mostrarDialogoVerCategorias(context, estadoCategorias.categorias);
+                _mostrarDialogoVerCategorias(
+                    context, estadoCategorias.categorias);
               }
             },
             itemBuilder: (BuildContext context) {
@@ -99,6 +100,35 @@ class _GastosScreenState extends State<GastosScreen> {
             ),
           ),
 
+          // Filtrar por categoria
+          Container(
+            margin: EdgeInsets.all(8.0),
+            padding: EdgeInsets.symmetric(horizontal: 16.0),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8.0),
+            ),
+            child: DropdownButton<int>(
+              value: selectedCategoriaId,
+              onChanged: (value) {
+                setState(() {
+                  selectedCategoriaId = value ?? 0;
+                });
+              },
+              items: [
+                DropdownMenuItem<int>(
+                  value: 0,
+                  child: Text('Todos'),
+                ),
+                for (var categoria in estadoCategorias.categorias)
+                  DropdownMenuItem<int>(
+                    value: categoria.id,
+                    child: Text(categoria.nombre),
+                  ),
+              ],
+            ),
+          ),
+
           // Dropdown for filtering by vehicle
           Container(
             margin: EdgeInsets.all(8.0),
@@ -129,6 +159,7 @@ class _GastosScreenState extends State<GastosScreen> {
           ),
 
           // Lista de Gastos
+          // Lista de Gastos
           Expanded(
             child: Container(
               margin: EdgeInsets.all(8.0),
@@ -142,50 +173,56 @@ class _GastosScreenState extends State<GastosScreen> {
                       child: Text('No hay gastos'),
                     )
                   : ListView.builder(
-                      itemCount: estadoGastos.gastos.length,
+                      itemCount: filtrarGastos(estadoGastos.gastos,
+                              selectedCategoriaId, selectedVehiculoId)
+                          .length,
                       itemBuilder: (context, index) {
-                        if (selectedVehiculoId == 0 ||
-                            estadoGastos.gastos[index].vehiculoId ==
-                                selectedVehiculoId) {
-                          return ListTile(
-                            title: Text(
-                              '${estadoGastos.gastos[index].tipoGasto} - ${estadoGastos.gastos[index].monto}',
-                            ),
-                            subtitle: Text(
-                              'Descripcion: ${estadoGastos.gastos[index].descripcion} - Fecha: ${estadoGastos.gastos[index].fecha}',
-                            ),
-                            trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                IconButton(
-                                  icon: Icon(Icons.edit),
-                                  color: Colors.blueGrey,
-                                  onPressed: () {
-                                    _mostrarDialogoEditarGasto(
-                                      context,
-                                      estadoGastos.gastos[index],
-                                      estadoVehiculos.vehiculos,
-                                      estadoCategorias.categorias,
-                                    );
-                                  },
-                                ),
-                                IconButton(
-                                  icon: Icon(Icons.delete),
-                                  color: Colors.red,
-                                  onPressed: () {
-                                    context.read<GastosBloc>().add(
-                                          DeleteGasto(
-                                            gasto: estadoGastos.gastos[index],
-                                          ),
-                                        );
-                                  },
-                                ),
-                              ],
-                            ),
-                          );
-                        } else {
-                          return SizedBox.shrink();
-                        }
+                        var gastosFiltrados = filtrarGastos(estadoGastos.gastos,
+                            selectedCategoriaId, selectedVehiculoId);
+                        var gasto = gastosFiltrados[index];
+
+                        // Buscar la categoría correspondiente al gasto
+                        Categoria? categoriaDelGasto = estadoCategorias
+                            .categorias
+                            .firstWhereOrNull((categoria) =>
+                                categoria.id == gasto.categoriaId);
+
+                        return ListTile(
+                          title: Text(
+                            '${categoriaDelGasto?.nombre ?? 'Sin categoría'} - ${gasto.monto}',
+                          ),
+                          subtitle: Text(
+                            'Descripcion: ${gasto.descripcion} - Fecha: ${gasto.fecha}',
+                          ),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: Icon(Icons.edit),
+                                color: Colors.blueGrey,
+                                onPressed: () {
+                                  _mostrarDialogoEditarGasto(
+                                    context,
+                                    gasto,
+                                    estadoVehiculos.vehiculos,
+                                    estadoCategorias.categorias,
+                                  );
+                                },
+                              ),
+                              IconButton(
+                                icon: Icon(Icons.delete),
+                                color: Colors.red,
+                                onPressed: () {
+                                  context.read<GastosBloc>().add(
+                                        DeleteGasto(
+                                          gasto: gasto,
+                                        ),
+                                      );
+                                },
+                              ),
+                            ],
+                          ),
+                        );
                       },
                     ),
             ),
@@ -303,7 +340,7 @@ class _GastosScreenState extends State<GastosScreen> {
                   ),
                   DropdownButtonFormField<Categoria>(
                     decoration: InputDecoration(labelText: 'Categoria'),
-                    value: selectedCategoria, 
+                    value: selectedCategoria,
                     items: categorias.map((Categoria categoria) {
                       return DropdownMenuItem<Categoria>(
                         value: categoria,
@@ -592,7 +629,8 @@ class _GastosScreenState extends State<GastosScreen> {
                                       nombre: nombreCategoriaController.text),
                                 ),
                               );
-                          print('Categoría agregada: ${nombreCategoriaController.text}');
+                          print(
+                              'Categoría agregada: ${nombreCategoriaController.text}');
 
                           Navigator.of(context).pop();
                         },
@@ -623,7 +661,8 @@ class _GastosScreenState extends State<GastosScreen> {
     );
   }
 
-  void _mostrarDialogoVerCategorias(BuildContext context, List<Categoria> categorias) {
+  void _mostrarDialogoVerCategorias(
+      BuildContext context, List<Categoria> categorias) {
     print(categorias);
     showDialog(
       context: context,
@@ -653,12 +692,12 @@ class _GastosScreenState extends State<GastosScreen> {
                           color: Colors.red,
                           onPressed: () {
                             context.read<CategoriasBloc>().add(
-                              DeleteCategoria(
-                                categoria: categoria,
-                              ),
-                            );
+                                  DeleteCategoria(
+                                    categoria: categoria,
+                                  ),
+                                );
 
-                            Navigator.of(context).pop(); 
+                            Navigator.of(context).pop();
                           },
                         ),
                       )
@@ -679,6 +718,31 @@ class _GastosScreenState extends State<GastosScreen> {
         );
       },
     );
+  }
+
+  List<Gasto> filtrarGastos(
+      List<Gasto> todosLosGastos, int categoriaId, int vehiculoId) {
+    if (categoriaId == 0 && vehiculoId == 0) {
+      // Mostrar todos los gastos si no hay filtros aplicados
+      return todosLosGastos;
+    } else if (categoriaId == 0) {
+      // Filtrar por vehículo si la categoría es "Todos"
+      return todosLosGastos
+          .where((gasto) => gasto.vehiculoId == vehiculoId)
+          .toList();
+    } else if (vehiculoId == 0) {
+      // Filtrar por categoría si el vehículo es "Todos"
+      return todosLosGastos
+          .where((gasto) => gasto.categoriaId == categoriaId)
+          .toList();
+    } else {
+      // Filtrar por ambos: categoría y vehículo
+      return todosLosGastos
+          .where((gasto) =>
+              gasto.categoriaId == categoriaId &&
+              gasto.vehiculoId == vehiculoId)
+          .toList();
+    }
   }
 
   // void _mostrarDialogoVerCategorias(BuildContext context, List<Categoria> categorias) {

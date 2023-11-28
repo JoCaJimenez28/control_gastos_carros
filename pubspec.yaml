@@ -12,6 +12,7 @@ dependencies:
   collection: ^1.17.2
   datetime_picker_formfield_new: ^2.1.0
   equatable: ^2.0.5
+  fl_chart: ^0.65.0
   flutter:
     sdk: flutter
   flutter_bloc: ^8.1.3
