@@ -100,8 +100,8 @@ class GastosBloc extends Bloc<GastoEvento, GastoEstado> {
 }
 
 final List<Gasto> listaOriginal = [
-  Gasto(id: 1, tipoGasto: 'Gasolinera', monto: 100, fecha: DateTime(2023, 11, 15), descripcion: '100 en gasolinera zacatecas', vehiculoId: 1),
-  Gasto(id: 2, tipoGasto: 'Mecanico', monto: 600, fecha: DateTime(2023, 10, 1), descripcion: 'cambio de aceite', vehiculoId: 2)
+  Gasto(id: 1, tipoGasto: 'Gasolinera', monto: 100, fecha: DateTime(2023, 11, 15), descripcion: '100 en gasolinera zacatecas', categoriaId: 1, vehiculoId: 1),
+  Gasto(id: 2, tipoGasto: 'Mecanico', monto: 600, fecha: DateTime(2023, 10, 1), descripcion: 'cambio de aceite', categoriaId: 2,vehiculoId: 2)
 ];
 
 extension MiLista<T> on List<T>{

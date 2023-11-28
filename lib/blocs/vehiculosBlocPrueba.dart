@@ -94,8 +94,8 @@ class VehiculosBloc extends Bloc<VehiculoEvento, VehiculoEstado> {
 }
 
 final List<Vehiculo> listaOriginal = [
-  Vehiculo(id: 1, marca: 'vw', modelo: 'vocho', anio: '2002', color: 'rojo'),
-  Vehiculo(id: 2, marca: 'nissan', modelo: 'sentra', anio: '2003', color: 'azul'),
+  Vehiculo(id: 1, marca: 'vw', placa: 'VSA-1234', modelo: 'vocho', anio: '2002', color: 'rojo'),
+  Vehiculo(id: 2, marca: 'nissan', placa: 'VSA-2345', modelo: 'sentra', anio: '2003', color: 'azul'),
 ];
 
 extension MiLista<T> on List<T>{

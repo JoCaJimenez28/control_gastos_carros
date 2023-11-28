@@ -1,9 +1,12 @@
 import 'package:collection/collection.dart';
 // import 'package:control_gastos_carros/blocs/gastosBlocPrueba.dart';
 import 'package:control_gastos_carros/blocs/gastosBlocDb.dart';
+import 'package:control_gastos_carros/blocs/categoriasBlocDb.dart';
 import 'package:control_gastos_carros/blocs/vehiculosBlocDb.dart';
+import 'package:control_gastos_carros/modelos/categorias.dart';
 import 'package:control_gastos_carros/modelos/gastos.dart';
 import 'package:control_gastos_carros/modelos/vehiculos.dart';
+import 'package:datetime_picker_formfield_new/datetime_picker_formfield.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -15,18 +18,22 @@ class GastosScreen extends StatefulWidget {
 
 class _GastosScreenState extends State<GastosScreen> {
   int selectedVehiculoId = 0; // "Todos"
+  int selectedCategoriaId = 0; // "Todos"
   Vehiculo? selectedVehiculo;
+  Categoria? selectedCategoria;
 
   @override
   void initState() {
     super.initState();
     context.read<VehiculosBlocDb>().add(VehiculosInicializado());
+    context.read<CategoriasBloc>().add(Categoriasinicializado());
   }
 
   @override
   Widget build(BuildContext context) {
     var estadoGastos = context.watch<GastosBloc>().state;
     var estadoVehiculos = context.watch<VehiculosBlocDb>().state;
+    var estadoCategorias = context.watch<CategoriasBloc>().state;
 
     double totalMonto;
     if (selectedVehiculoId == 0) {
@@ -39,6 +46,28 @@ class _GastosScreenState extends State<GastosScreen> {
     }
 
     return Scaffold(
+      appBar: AppBar(
+        title: Text('Gastos'),
+        actions: [
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              // Manejar la opción seleccionada
+              if (value == 'ver_categorias') {
+                _mostrarDialogoVerCategorias(context, estadoCategorias.categorias);
+              }
+            },
+            itemBuilder: (BuildContext context) {
+              return [
+                PopupMenuItem<String>(
+                  value: 'ver_categorias',
+                  child: Text('Ver Categorías'),
+                ),
+                // Agrega más opciones si es necesario
+              ];
+            },
+          ),
+        ],
+      ),
       backgroundColor: Color.fromARGB(255, 237, 237, 237),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -61,7 +90,10 @@ class _GastosScreenState extends State<GastosScreen> {
                 SizedBox(height: 8.0),
                 Text(
                   '\$$totalMonto',
-                  style: TextStyle(color: Colors.white, fontSize: 24.0, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 24.0,
+                      fontWeight: FontWeight.bold),
                 ),
               ],
             ),
@@ -133,6 +165,7 @@ class _GastosScreenState extends State<GastosScreen> {
                                       context,
                                       estadoGastos.gastos[index],
                                       estadoVehiculos.vehiculos,
+                                      estadoCategorias.categorias,
                                     );
                                   },
                                 ),
@@ -159,12 +192,32 @@ class _GastosScreenState extends State<GastosScreen> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          _mostrarDialogoAgregarGasto(context, estadoVehiculos.vehiculos);
-        },
-        child: Icon(Icons.add),
+      floatingActionButton: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          FloatingActionButton(
+            onPressed: () {
+              // Acciones para el botón "+Categoria"
+              _mostrarDialogoAgregarCategoria(context);
+            },
+            child: Icon(Icons.category),
+          ),
+          SizedBox(width: 16.0), // Espacio entre los dos botones
+          FloatingActionButton(
+            onPressed: () {
+              _mostrarDialogoAgregarGasto(context, estadoVehiculos.vehiculos,
+                  estadoCategorias.categorias);
+            },
+            child: Icon(Icons.add),
+          ),
+        ],
       ),
+      // floatingActionButton: FloatingActionButton(
+      //   onPressed: () {
+      //     _mostrarDialogoAgregarGasto(context, estadoVehiculos.vehiculos);
+      //   },
+      //   child: Icon(Icons.add),
+      // ),
     );
   }
 
@@ -172,245 +225,496 @@ class _GastosScreenState extends State<GastosScreen> {
     return DateFormat('yyyy-MM-dd').format(date);
   }
 
-  void _mostrarDialogoAgregarGasto(
-      BuildContext context, List<Vehiculo> vehiculos) {
+  void _mostrarDialogoAgregarGasto(BuildContext context,
+      List<Vehiculo> vehiculos, List<Categoria> categorias) {
     // TextEditingController idController = TextEditingController();
     TextEditingController tipoController = TextEditingController();
     TextEditingController montoController = TextEditingController();
-    TextEditingController fechaController = TextEditingController(text: DateTime.now().toString());
+    TextEditingController fechaController =
+        TextEditingController(text: DateTime.now().toString());
     TextEditingController descripcionController = TextEditingController();
+    TextEditingController categoriaController = TextEditingController();
     TextEditingController vehiculoController = TextEditingController();
 
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return Dialog(
-        child: SingleChildScrollView(
-          child: Container(
-            padding: EdgeInsets.all(24),
-            child: Column(
-              children: [
-                // TextField(
-                //   decoration: InputDecoration(labelText: 'ID'),
-                //   controller: idController,
-                // ),
-                TextField(
-                  decoration: InputDecoration(labelText: 'Tipo'),
-                  controller: tipoController,
-                ),
-                TextField(
-                  decoration: InputDecoration(labelText: 'Monto'),
-                  controller: montoController,
-                ),
-                TextButton(
-                  onPressed: () async {
-                    DateTime? selectedDate = await showDatePicker(
-                      context: context,
-                      initialDate: DateTime.now(),
-                      firstDate: DateTime(2000),
-                      lastDate: DateTime(2101),
-                    );
-                    if (selectedDate != null) {
-                      fechaController.text = formatDate(selectedDate);
-                    }
-                  },
-                  child: Row(
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          child: SingleChildScrollView(
+            child: Container(
+              padding: EdgeInsets.all(24),
+              child: Column(
+                children: [
+                  // TextField(
+                  //   decoration: InputDecoration(labelText: 'ID'),
+                  //   controller: idController,
+                  // ),
+                  Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Fecha: ${fechaController.text}',
-                        style: TextStyle(color: Colors.blue),
-                      ),
-                      Icon(Icons.calendar_today, color: Colors.blue),
-                    ],
-                  ),
-                ),
-                DropdownButtonFormField<Vehiculo>(
-                  decoration: InputDecoration(labelText: 'Vehículo'),
-                  value: selectedVehiculo,
-                  items: vehiculos.map((Vehiculo vehiculo) {
-                    return DropdownMenuItem<Vehiculo>(
-                      value: vehiculo,
-                      child: Text('${vehiculo.marca} - ${vehiculo.modelo}'),
-                    );
-                  }).toList(),
-                  onChanged: (Vehiculo? nuevoVehiculo) {
-                    setState(() {
-                      selectedVehiculo = nuevoVehiculo;
-                    });
-                  },
-                  disabledHint: Text(selectedVehiculo != null
-                      ? '${selectedVehiculo!.marca} - ${selectedVehiculo!.modelo}'
-                      : 'Seleccione un vehículo'),
-                ),
-                TextField(
-                  decoration: InputDecoration(labelText: 'Descripción'),
-                  controller: descripcionController,
-                ),
-                SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    ElevatedButton(
-                      onPressed: () {
-                        context.read<GastosBloc>().add(
-                          AddGasto(
-                            gasto: Gasto(
-                              // id: int.parse(idController.text),
-                              tipoGasto: tipoController.text,
-                              monto: double.parse(montoController.text),
-                              fecha: DateTime.parse(fechaController.text),
-                              descripcion: descripcionController.text,
-                              vehiculoId: selectedVehiculo?.id ?? 0,
-                            ),
-                            context: context,
-                          ),
-                        );
-
-                        Navigator.of(context).pop();
-                      },
-                      child: Text('Guardar'),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
-                      child: Text(
-                        'Cancelar',
+                        'Agregar Gasto',
                         style: TextStyle(
-                          color: Colors.red,
+                          fontSize: 24,
                           fontWeight: FontWeight.bold,
+                          color: Colors.blue,
                         ),
                       ),
-                    ),
-                  ],
-                ),
-              ],
+                      IconButton(
+                        icon: Icon(Icons.close),
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                      ),
+                    ],
+                  ),
+                  TextField(
+                    decoration: InputDecoration(labelText: 'Tipo'),
+                    controller: tipoController,
+                  ),
+                  TextField(
+                    decoration: InputDecoration(labelText: 'Monto'),
+                    controller: montoController,
+                  ),
+                  DateTimeField(
+                    decoration: InputDecoration(labelText: 'Fecha'),
+                    format: DateFormat("yyyy-MM-dd"),
+                    initialValue: DateTime.now(),
+                    onChanged: (date) {
+                      setState(() {
+                        var selectedDate = date!;
+                        fechaController.text = formatDate(selectedDate);
+                      });
+                    },
+                    onShowPicker: (context, currentValue) async {
+                      final date = await showDatePicker(
+                        context: context,
+                        firstDate: DateTime.utc(DateTime.now().year),
+                        lastDate: DateTime.now(),
+                        initialDate: currentValue ?? DateTime.now(),
+                      );
+
+                      if (date != null) {
+                        currentValue = DateTime.now();
+                      }
+
+                      return date;
+                    },
+                  ),
+                  DropdownButtonFormField<Categoria>(
+                    decoration: InputDecoration(labelText: 'Categoria'),
+                    value: selectedCategoria, 
+                    items: categorias.map((Categoria categoria) {
+                      return DropdownMenuItem<Categoria>(
+                        value: categoria,
+                        child: Text('${categoria.nombre}'),
+                      );
+                    }).toList(),
+                    onChanged: (Categoria? nuevaCategoria) {
+                      setState(() {
+                        selectedCategoria = nuevaCategoria;
+                      });
+                    },
+                    disabledHint: Text(selectedCategoria != null
+                        ? '${selectedCategoria!.nombre} '
+                        : 'Seleccione una categoria'),
+                  ),
+                  DropdownButtonFormField<Vehiculo>(
+                    decoration: InputDecoration(labelText: 'Vehículo'),
+                    value: selectedVehiculo,
+                    items: vehiculos.map((Vehiculo vehiculo) {
+                      return DropdownMenuItem<Vehiculo>(
+                        value: vehiculo,
+                        child: Text('${vehiculo.marca} - ${vehiculo.modelo}'),
+                      );
+                    }).toList(),
+                    onChanged: (Vehiculo? nuevoVehiculo) {
+                      setState(() {
+                        selectedVehiculo = nuevoVehiculo;
+                      });
+                    },
+                    disabledHint: Text(selectedVehiculo != null
+                        ? '${selectedVehiculo!.marca} - ${selectedVehiculo!.modelo}'
+                        : 'Seleccione un vehículo'),
+                  ),
+                  TextField(
+                    decoration: InputDecoration(labelText: 'Descripción'),
+                    controller: descripcionController,
+                  ),
+                  SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      ElevatedButton(
+                        onPressed: () {
+                          context.read<GastosBloc>().add(
+                                AddGasto(
+                                  gasto: Gasto(
+                                    // id: int.parse(idController.text),
+                                    tipoGasto: tipoController.text,
+                                    monto: double.parse(montoController.text),
+                                    fecha: DateTime.parse(fechaController.text),
+                                    descripcion: descripcionController.text,
+                                    categoriaId: selectedCategoria?.id ?? 0,
+                                    vehiculoId: selectedVehiculo?.id ?? 0,
+                                  ),
+                                  context: context,
+                                ),
+                              );
+
+                          Navigator.of(context).pop();
+                        },
+                        child: Text('Guardar'),
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        child: Text(
+                          'Cancelar',
+                          style: TextStyle(
+                            // color: Colors.red,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
-      );
-    },
-  );
-}
+        );
+      },
+    );
+  }
 
-void _mostrarDialogoEditarGasto(BuildContext context, Gasto gasto, List<Vehiculo> vehiculos) {
-  TextEditingController tipoController = TextEditingController(text: gasto.tipoGasto);
-  TextEditingController montoController = TextEditingController(text: gasto.monto.toString());
-  TextEditingController fechaController = TextEditingController(text: formatDate(gasto.fecha));
-  TextEditingController descripcionController = TextEditingController();
+  void _mostrarDialogoEditarGasto(BuildContext context, Gasto gasto,
+      List<Vehiculo> vehiculos, List<Categoria> categorias) {
+    TextEditingController tipoController =
+        TextEditingController(text: gasto.tipoGasto);
+    TextEditingController montoController =
+        TextEditingController(text: gasto.monto.toString());
+    TextEditingController fechaController =
+        TextEditingController(text: formatDate(gasto.fecha));
+    TextEditingController descripcionController =
+        TextEditingController(text: gasto.descripcion);
 
-  Vehiculo? vehiculoSeleccionado = vehiculos.firstWhereOrNull((v) => v.id == gasto.vehiculoId);
-  TextEditingController vehiculoController = TextEditingController();
+    Categoria? categoriaSeleccionada =
+        categorias.firstWhereOrNull((v) => v.id == gasto.categoriaId);
+    TextEditingController categoriaController = TextEditingController();
 
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return Dialog(
-        child: SingleChildScrollView(
-          child: Container(
-            padding: EdgeInsets.all(24),
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Editar Gasto',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.blue,
-                      ),
-                    ),
-                    IconButton(
-                      icon: Icon(Icons.close),
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
-                    ),
-                  ],
-                ),
-                SizedBox(height: 16),
-                TextField(
-                  decoration: InputDecoration(labelText: 'Tipo'),
-                  controller: tipoController,
-                ),
-                TextField(
-                  decoration: InputDecoration(labelText: 'Monto'),
-                  controller: montoController,
-                ),
-                TextButton(
-                  onPressed: () async {
-                    DateTime? selectedDate = await showDatePicker(
-                      context: context,
-                      initialDate: gasto.fecha,
-                      firstDate: DateTime(2000),
-                      lastDate: DateTime(2101),
-                    );
-                    if (selectedDate != null) {
-                      fechaController.text = formatDate(selectedDate);
-                    }
-                  },
-                  child: Row(
+    Vehiculo? vehiculoSeleccionado =
+        vehiculos.firstWhereOrNull((v) => v.id == gasto.vehiculoId);
+    TextEditingController vehiculoController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          child: SingleChildScrollView(
+            child: Container(
+              padding: EdgeInsets.all(24),
+              child: Column(
+                children: [
+                  Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Fecha: ${fechaController.text}',
-                        style: TextStyle(color: Colors.blue),
-                      ),
-                      Icon(Icons.calendar_today, color: Colors.blue),
-                    ],
-                  ),
-                ),
-                DropdownButtonFormField<Vehiculo>(
-                  decoration: InputDecoration(labelText: 'Vehículo'),
-                  value: vehiculoSeleccionado,
-                  items: vehiculos.map((Vehiculo vehiculo) {
-                    return DropdownMenuItem<Vehiculo>(
-                      value: vehiculo,
-                      child: Text('${vehiculo.marca} - ${vehiculo.modelo}'),
-                    );
-                  }).toList(),
-                  onChanged: (Vehiculo? newValue) {
-                    setState(() {
-                      vehiculoController.text = '${newValue?.marca ?? ''} - ${newValue?.id ?? 0}';
-                    });
-                  },
-                ),
-                TextField(
-                  decoration: InputDecoration(labelText: 'Descripción'),
-                  controller: descripcionController,
-                ),
-                SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: () {
-                    context.read<GastosBloc>().add(
-                      UpdateGasto(
-                        gasto: Gasto(
-                          id: gasto.id,
-                          tipoGasto: tipoController.text,
-                          monto: double.parse(montoController.text),
-                          fecha: DateTime.parse(fechaController.text),
-                          descripcion: descripcionController.text,
-                          vehiculoId: vehiculoSeleccionado?.id ?? 0,
+                        'Editar Gasto',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue,
                         ),
                       ),
-                    );
+                      IconButton(
+                        icon: Icon(Icons.close),
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 16),
+                  TextField(
+                    decoration: InputDecoration(labelText: 'Tipo'),
+                    controller: tipoController,
+                  ),
+                  TextField(
+                    decoration: InputDecoration(labelText: 'Monto'),
+                    controller: montoController,
+                  ),
+                  DateTimeField(
+                    decoration: InputDecoration(labelText: 'Fecha'),
+                    format: DateFormat("yyyy-MM-dd"),
+                    initialValue: DateTime.now(),
+                    onChanged: (date) {
+                      setState(() {
+                        var selectedDate = date!;
+                        fechaController.text = formatDate(selectedDate);
+                      });
+                    },
+                    onSaved: (date) {
+                      // Handle when the form is saved
+                    },
+                    onShowPicker: (context, currentValue) async {
+                      final date = await showDatePicker(
+                        context: context,
+                        firstDate: DateTime(2000),
+                        lastDate: DateTime(2101),
+                        initialDate: currentValue ?? DateTime.now(),
+                      );
 
-                    Navigator.of(context).pop();
-                  },
-                  child: Text('Guardar'),
-                ),
-              ],
+                      if (date != null) {
+                        currentValue = DateTime.now();
+                      }
+
+                      return date;
+                    },
+                  ),
+                  DropdownButtonFormField<Vehiculo>(
+                    decoration: InputDecoration(labelText: 'Vehículo'),
+                    value: vehiculoSeleccionado,
+                    items: vehiculos.map((Vehiculo vehiculo) {
+                      return DropdownMenuItem<Vehiculo>(
+                        value: vehiculo,
+                        child: Text('${vehiculo.marca} - ${vehiculo.modelo}'),
+                      );
+                    }).toList(),
+                    onChanged: (Vehiculo? newValue) {
+                      setState(() {
+                        vehiculoController.text =
+                            '${newValue?.marca ?? ''} - ${newValue?.id ?? 0}';
+                      });
+                    },
+                  ),
+                  TextField(
+                    decoration: InputDecoration(labelText: 'Descripción'),
+                    controller: descripcionController,
+                  ),
+                  SizedBox(height: 16),
+                  Row(
+                    children: [
+                      ElevatedButton(
+                        onPressed: () {
+                          context.read<GastosBloc>().add(
+                                UpdateGasto(
+                                  gasto: Gasto(
+                                    id: gasto.id,
+                                    tipoGasto: tipoController.text,
+                                    monto: double.parse(montoController.text),
+                                    fecha: DateTime.parse(fechaController.text),
+                                    descripcion: descripcionController.text,
+                                    categoriaId: categoriaSeleccionada?.id ?? 0,
+                                    vehiculoId: vehiculoSeleccionado?.id ?? 0,
+                                  ),
+                                ),
+                              );
+
+                          Navigator.of(context).pop();
+                        },
+                        child: Text('Guardar'),
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        child: Text(
+                          'Cancelar',
+                          style: TextStyle(
+                            // color: Colors.red,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
-      );
-    },
-  );
-}
+        );
+      },
+    );
+  }
 
+  void _mostrarDialogoAgregarCategoria(BuildContext context) {
+    TextEditingController nombreCategoriaController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          child: SingleChildScrollView(
+            child: Container(
+              padding: EdgeInsets.all(24),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Agregar Categoría',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue,
+                        ),
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.close),
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 16),
+                  TextField(
+                    decoration:
+                        InputDecoration(labelText: 'Nombre de la Categoría'),
+                    controller: nombreCategoriaController,
+                  ),
+                  SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      ElevatedButton(
+                        onPressed: () {
+                          context.read<CategoriasBloc>().add(
+                                AddCategoria(
+                                  categoria: Categoria(
+                                      nombre: nombreCategoriaController.text),
+                                ),
+                              );
+                          print('Categoría agregada: ${nombreCategoriaController.text}');
+
+                          Navigator.of(context).pop();
+                        },
+                        child: Text('Guardar'),
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        child: Text(
+                          'Cancelar',
+                          style: TextStyle(
+                            // color: Colors.red,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _mostrarDialogoVerCategorias(BuildContext context, List<Categoria> categorias) {
+    print(categorias);
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          child: Container(
+            margin: EdgeInsets.all(16.0),
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(
+                      'Categorias',
+                      style: TextStyle(
+                        fontSize: 18.0,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  if (categorias.isNotEmpty)
+                    for (Categoria categoria in categorias)
+                      ListTile(
+                        title: Text(categoria.nombre),
+                        trailing: IconButton(
+                          icon: Icon(Icons.delete),
+                          color: Colors.red,
+                          onPressed: () {
+                            context.read<CategoriasBloc>().add(
+                              DeleteCategoria(
+                                categoria: categoria,
+                              ),
+                            );
+
+                            Navigator.of(context).pop(); 
+                          },
+                        ),
+                      )
+                  else
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text(
+                        'Agrega una categoría',
+                        style: TextStyle(
+                          fontSize: 16.0,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // void _mostrarDialogoVerCategorias(BuildContext context, List<Categoria> categorias) {
+  //   showDialog(
+  //     context: context,
+  //     builder: (BuildContext context) {
+  //       return Dialog(
+  //         child: SingleChildScrollView(
+  //           child: Container(
+  //             padding: EdgeInsets.all(24),
+  //             child: Column(
+  //               children: [
+  //                 for (Categoria categoria in categorias)
+  //                   ListTile(
+  //                     title: Text(categoria.nombre),
+  //                     trailing: IconButton(
+  //                       icon: Icon(Icons.delete),
+  //                       onPressed: () {
+  //                         // Handle delete category action
+  //                         context.read<CategoriasBloc>().add(
+  //                           DeleteCategoria(
+  //                             categoria: categoria,
+  //                           ),
+  //                         );
+  //                         Navigator.of(context).pop(); // Close the dialog
+  //                       },
+  //                     ),
+  //                   ),
+  //               ],
+  //             ),
+  //           ),
+  //         ),
+  //       );
+  //     },
+  //   );
+  // }
 
 //   void _mostrarDialogoAgregarGasto(
 //       BuildContext context, List<Vehiculo> vehiculos) {

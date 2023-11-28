@@ -79,7 +79,7 @@ class VehiculosBlocDb extends Bloc<VehiculoEvento, VehiculoEstado> {
 
   void _updateVehiculo(UpdateVehiculo event, Emitter<VehiculoEstado> emit) async {
     try {
-      Vehiculo? editvehiculo = await getVehiculoByModelo(event.vehiculo.modelo);
+      Vehiculo? editvehiculo = await getVehiculoByPlaca(event.vehiculo.placa);
       print("editVehiculo: $editvehiculo");
 
       if (editvehiculo != null) {
@@ -133,6 +133,7 @@ class VehiculosBlocDb extends Bloc<VehiculoEvento, VehiculoEstado> {
       return Vehiculo(
           id: e['ID'],
           marca: e['marca'],
+          placa: e['placa'],
           modelo: e['modelo'],
           anio: e['anio'],
           color: e['color']);
@@ -148,11 +149,14 @@ class VehiculosBlocDb extends Bloc<VehiculoEvento, VehiculoEstado> {
       print('Error: Database not initialized.');
       return [];
     }
-
+    if( getVehiculoByPlaca(vehiculo.placa) == null){
+      return [];
+    }
     await db.insert(
       'vehiculos',
       {
         'marca': vehiculo.marca,
+        'placa': vehiculo.placa,
         'modelo': vehiculo.modelo,
         'anio': vehiculo.anio,
         'color': vehiculo.color
@@ -165,6 +169,7 @@ class VehiculosBlocDb extends Bloc<VehiculoEvento, VehiculoEstado> {
       return Vehiculo(
         id: e['ID'],
         marca: e['marca'],
+        placa: e['placa'],
         modelo: e['modelo'],
         anio: e['anio'],
         color: e['color'],
@@ -194,6 +199,7 @@ class VehiculosBlocDb extends Bloc<VehiculoEvento, VehiculoEstado> {
       return Vehiculo(
         id: vehiculoData['ID'],
         marca: vehiculoData['marca'],
+        placa: vehiculoData['placa'],
         modelo: vehiculoData['modelo'],
         anio: vehiculoData['anio'],
         color: vehiculoData['color'],
@@ -204,7 +210,7 @@ class VehiculosBlocDb extends Bloc<VehiculoEvento, VehiculoEstado> {
     }
   }
 
-  Future<Vehiculo?> getVehiculoByModelo(String modelo) async {
+  Future<Vehiculo?> getVehiculoByPlaca(String placa) async {
     final Database? db = await DatabaseHelper().database;
 
     if (db == null) {
@@ -215,8 +221,8 @@ class VehiculosBlocDb extends Bloc<VehiculoEvento, VehiculoEstado> {
     List<Map<String, dynamic>> data = await db.query(
       'vehiculos',
       where:
-          'modelo = ?', 
-      whereArgs: [modelo],
+          'placa = ?', 
+      whereArgs: [placa],
     );
 
     if (data.isNotEmpty) {
@@ -224,12 +230,13 @@ class VehiculosBlocDb extends Bloc<VehiculoEvento, VehiculoEstado> {
       return Vehiculo(
         id: vehiculoData['ID'],
         marca: vehiculoData['marca'],
+        placa: vehiculoData['placa'],
         modelo: vehiculoData['modelo'],
         anio: vehiculoData['anio'],
         color: vehiculoData['color'],
       );
     } else {
-      print('Vehículo con modelo $modelo no encontrado.');
+      print('Vehículo con modelo $placa no encontrado.');
       return null;
     }
   }
@@ -251,6 +258,7 @@ class VehiculosBlocDb extends Bloc<VehiculoEvento, VehiculoEstado> {
       'vehiculos',
       {
         'marca': vehiculo.marca,
+        'placa': vehiculo.placa,
         'modelo': vehiculo.modelo,
         'anio': vehiculo.anio,
         'color': vehiculo.color
@@ -264,6 +272,7 @@ class VehiculosBlocDb extends Bloc<VehiculoEvento, VehiculoEstado> {
       return Vehiculo(
         id: e['ID'],
         marca: e['marca'],
+        placa: e['placa'],
         modelo: e['modelo'],
         anio: e['anio'],
         color: e['color'],
@@ -292,6 +301,7 @@ class VehiculosBlocDb extends Bloc<VehiculoEvento, VehiculoEstado> {
       return Vehiculo(
         id: e['ID'],
         marca: e['marca'],
+        placa: e['placa'],
         modelo: e['modelo'],
         anio: e['anio'],
         color: e['color'],
@@ -315,6 +325,7 @@ Future<List<Vehiculo>> obtenerVehiculos() async {
       return Vehiculo(
         id: maps[index]['ID'],
         marca: maps[index]['marca'],
+        placa: maps[index]['placa'],
         modelo: maps[index]['modelo'],
         anio: maps[index]['anio'],
         color: maps[index]['color'],
