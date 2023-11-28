@@ -5,6 +5,7 @@ import 'package:control_gastos_carros/blocs/gastosBlocDb.dart';
 import 'package:control_gastos_carros/blocs/vehiculosBlocDb.dart';
 import 'package:control_gastos_carros/database/database.dart';
 import 'package:control_gastos_carros/gastosScreen.dart';
+import 'package:control_gastos_carros/inicioScreen.dart';
 import 'package:control_gastos_carros/modelos/categorias.dart';
 import 'package:control_gastos_carros/vehiculosScreen.dart';
 // import 'package:control_gastos_carros/blocs/vehiculosBlocPrueba.dart';
@@ -21,9 +22,20 @@ void main() async {
   runApp(MyApp());
 }
 
-Widget? currentScreen;
+class MyApp extends StatefulWidget {
+  @override
+  _MyAppState createState() => _MyAppState();
+}
 
-class MyApp extends StatelessWidget {
+class _MyAppState extends State<MyApp> {
+  int _currentIndex = 0;
+
+  final List<Widget> _screens = [
+    InicioScreen(),
+    VehiculosScreen(),
+    GastosScreen(),
+  ];
+
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
@@ -40,53 +52,111 @@ class MyApp extends StatelessWidget {
       ],
       child: MaterialApp(
         title: 'Control de Gastos de Vehículos',
-        home: DefaultTabController(
-          length: 2,
-          child: Scaffold(
-            appBar: AppBar(
-              title: Text('Control de Gastos'),
-              actions: [
-                PopupMenuButton<String>(
-                  onSelected: (value) {
-                    if (value == 'ver_categorias') {
-                      print('Ver Categorias');
-                      showDialog(
-                          context: context, 
-                          builder: (BuildContext context) {
-                            return CategoriasDialog();
-                          }
-                      );
-                    }
-                  },
-                  itemBuilder: (BuildContext context) {
-                    return [
-                      PopupMenuItem<String>(
-                        value: 'ver_categorias',
-                        child: Text('Ver Categorias'),
-                      ),
-                    ];
-                  },
-                ),
-              ],
-              bottom: TabBar(
-                tabs: [
-                  Tab(text: 'Vehículos'),
-                  Tab(text: 'Gastos'),
-                ],
+        debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        // primarySwatch: Colors.orange,
+        // visualDensity: VisualDensity.adaptivePlatformDensity,
+      ),
+        home: Scaffold(
+          body: _screens[_currentIndex],
+          bottomNavigationBar: BottomNavigationBar(
+            currentIndex: _currentIndex,
+            onTap: (index) {
+              setState(() {
+                _currentIndex = index;
+              });
+            },
+            items: [
+              BottomNavigationBarItem(
+                icon: Icon(Icons.home),
+                label: 'Inicio',
               ),
-            ),
-            body: TabBarView(
-              children: [
-                VehiculosScreen(),
-                GastosScreen(),
-              ],
-            ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.directions_car),
+                label: 'Vehículos',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.attach_money),
+                label: 'Gastos',
+              ),
+            ],
           ),
         ),
       ),
     );
   }
 }
+
+// void main() async {
+//   WidgetsFlutterBinding.ensureInitialized();
+
+//   DatabaseHelper dbHelper = DatabaseHelper();
+//   await dbHelper.iniciarDatabase();
+
+//   runApp(MyApp());
+// }
+
+// Widget? currentScreen;
+
+// class MyApp extends StatelessWidget {
+//   @override
+//   Widget build(BuildContext context) {
+//     return MultiBlocProvider(
+//       providers: [
+//         BlocProvider<VehiculosBlocDb>(
+//           create: (context) => VehiculosBlocDb()..add(VehiculosInicializado()),
+//         ),
+//         BlocProvider<CategoriasBloc>(
+//           create: (context) => CategoriasBloc()..add(Categoriasinicializado()),
+//         ),
+//         BlocProvider<GastosBloc>(
+//           create: (context) => GastosBloc(context)..add(GastosInicializado()),
+//         ),
+//       ],
+//       child: MaterialApp(
+//         title: 'Control de Gastos de Vehículos',
+//         home: DefaultTabController(
+//           length: 2,
+//           child: Scaffold(
+//             appBar: AppBar(
+//               title: Text('Control de Gastos'),
+//               actions: [
+//                 PopupMenuButton<String>(
+//                   onSelected: (value) {
+//                     if (value == 'ver_categorias') {
+//                       print('Ver Categorias');
+//                       mostrarDialogoVerCategorias(context);
+//                     }
+//                   },
+//                   itemBuilder: (BuildContext context) {
+//                     return [
+//                       PopupMenuItem<String>(
+//                         value: 'ver_categorias',
+//                         child: Text('Ver Categorias'),
+//                       ),
+//                     ];
+//                   },
+//                 ),
+//               ],
+//               bottom: TabBar(
+//                 tabs: [
+//                   Tab(text: 'Vehículos'),
+//                   Tab(text: 'Gastos'),
+//                 ],
+//               ),
+//             ),
+//             body: TabBarView(
+//               children: [
+//                 VehiculosScreen(),
+//                 GastosScreen(),
+//               ],
+//             ),
+//           ),
+//         ),
+//       ),
+//     );
+//   }
+// }
 
 void mostrarDialogoVerCategorias(BuildContext context) {
   showDialog(

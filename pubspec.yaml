@@ -10,6 +10,7 @@ dependencies:
   bloc: ^8.1.2
   bloc_test: ^9.1.5
   collection: ^1.17.2
+  datetime_picker_formfield_new: ^2.1.0
   equatable: ^2.0.5
   flutter:
     sdk: flutter

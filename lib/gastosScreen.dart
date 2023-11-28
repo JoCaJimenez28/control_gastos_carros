@@ -46,6 +46,28 @@ class _GastosScreenState extends State<GastosScreen> {
     }
 
     return Scaffold(
+      appBar: AppBar(
+        title: Text('Gastos'),
+        actions: [
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              // Manejar la opción seleccionada
+              if (value == 'ver_categorias') {
+                _mostrarDialogoVerCategorias(context, estadoCategorias.categorias);
+              }
+            },
+            itemBuilder: (BuildContext context) {
+              return [
+                PopupMenuItem<String>(
+                  value: 'ver_categorias',
+                  child: Text('Ver Categorías'),
+                ),
+                // Agrega más opciones si es necesario
+              ];
+            },
+          ),
+        ],
+      ),
       backgroundColor: Color.fromARGB(255, 237, 237, 237),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -570,8 +592,7 @@ class _GastosScreenState extends State<GastosScreen> {
                                       nombre: nombreCategoriaController.text),
                                 ),
                               );
-                          print(
-                              'Categoría agregada: $nombreCategoriaController.text ');
+                          print('Categoría agregada: ${nombreCategoriaController.text}');
 
                           Navigator.of(context).pop();
                         },
@@ -601,6 +622,99 @@ class _GastosScreenState extends State<GastosScreen> {
       },
     );
   }
+
+  void _mostrarDialogoVerCategorias(BuildContext context, List<Categoria> categorias) {
+    print(categorias);
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          child: Container(
+            margin: EdgeInsets.all(16.0),
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(
+                      'Categorias',
+                      style: TextStyle(
+                        fontSize: 18.0,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  if (categorias.isNotEmpty)
+                    for (Categoria categoria in categorias)
+                      ListTile(
+                        title: Text(categoria.nombre),
+                        trailing: IconButton(
+                          icon: Icon(Icons.delete),
+                          color: Colors.red,
+                          onPressed: () {
+                            context.read<CategoriasBloc>().add(
+                              DeleteCategoria(
+                                categoria: categoria,
+                              ),
+                            );
+
+                            Navigator.of(context).pop(); 
+                          },
+                        ),
+                      )
+                  else
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text(
+                        'Agrega una categoría',
+                        style: TextStyle(
+                          fontSize: 16.0,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // void _mostrarDialogoVerCategorias(BuildContext context, List<Categoria> categorias) {
+  //   showDialog(
+  //     context: context,
+  //     builder: (BuildContext context) {
+  //       return Dialog(
+  //         child: SingleChildScrollView(
+  //           child: Container(
+  //             padding: EdgeInsets.all(24),
+  //             child: Column(
+  //               children: [
+  //                 for (Categoria categoria in categorias)
+  //                   ListTile(
+  //                     title: Text(categoria.nombre),
+  //                     trailing: IconButton(
+  //                       icon: Icon(Icons.delete),
+  //                       onPressed: () {
+  //                         // Handle delete category action
+  //                         context.read<CategoriasBloc>().add(
+  //                           DeleteCategoria(
+  //                             categoria: categoria,
+  //                           ),
+  //                         );
+  //                         Navigator.of(context).pop(); // Close the dialog
+  //                       },
+  //                     ),
+  //                   ),
+  //               ],
+  //             ),
+  //           ),
+  //         ),
+  //       );
+  //     },
+  //   );
+  // }
 
 //   void _mostrarDialogoAgregarGasto(
 //       BuildContext context, List<Vehiculo> vehiculos) {

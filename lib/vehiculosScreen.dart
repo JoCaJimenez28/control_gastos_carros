@@ -14,6 +14,9 @@ class _VehiculosScreenState extends State<VehiculosScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: Text('Vehiculos'),
+      ),
       backgroundColor: Color.fromARGB(255, 237, 237, 237),
       body: BlocBuilder<VehiculosBlocDb, VehiculoEstado>(
         builder: (context, state) {
@@ -224,10 +227,13 @@ class _VehiculosScreenState extends State<VehiculosScreen> {
                         child: Text(
                           'Cancelar',
                           style: TextStyle(
-                            color: Colors.red,
                             fontWeight: FontWeight.bold,
+                            color: Colors.white
                           ),
+                          
                         ),
+                        style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red),
                       ),
                     ],
                   ),
@@ -367,10 +373,12 @@ class _VehiculosScreenState extends State<VehiculosScreen> {
                         child: Text(
                           'Cancelar',
                           style: TextStyle(
-                            color: Colors.red,
+                            color: Colors.white,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
+                        style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red),
                       ),
                     ],
                   ),

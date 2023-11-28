@@ -69,10 +69,14 @@ class CategoriasBloc extends Bloc<CategoriaEvento, CategoriasEstado> {
   }
 
   void _addcategoria(AddCategoria event, Emitter<CategoriasEstado> emit) async {
+    print("entro al _add");
     try {
       await DatabaseHelper().iniciarDatabase();
       _categorias = await insertCategoria(event.categoria);
+    print("inserto categoria");
       emit(CategoriasEstado(categorias: _categorias));
+    print("estado: ${_categorias}");
+
     } catch (e) {
       emitErrorSnackBar(emit, 'Error al agregar vehículo: $e');
     }
@@ -97,11 +101,13 @@ class CategoriasBloc extends Bloc<CategoriaEvento, CategoriasEstado> {
 
   void _deleteCategoria(DeleteCategoria event, Emitter<CategoriasEstado> emit) async {
     try {
+      print("entro al delete");
       List<Categoria> updatedList = await deleteCategoria(event.categoria);
       emit(CategoriasEstado(categorias: updatedList));
       print('categoria eliminada con éxito!');
     } catch (e) {
       emitErrorSnackBar(emit, 'Error al eliminar categoria: $e');
+      print('errorDelete $e');
     }
   }
 
@@ -140,7 +146,7 @@ class CategoriasBloc extends Bloc<CategoriaEvento, CategoriasEstado> {
     await db.insert(
       'categorias',
       {
-        'marca': categoria.nombre,
+        'nombre': categoria.nombre,
       },
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
@@ -261,7 +267,7 @@ class CategoriasBloc extends Bloc<CategoriaEvento, CategoriasEstado> {
       whereArgs: [categoria.id], 
     );
 
-    List<Map<String, dynamic>> data = await db.query('categoria');
+    List<Map<String, dynamic>> data = await db.query('categorias');
     List<Categoria> updatedList = data.map((e) {
       return Categoria(
         id: e['ID'],
