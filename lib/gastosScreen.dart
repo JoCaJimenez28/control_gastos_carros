@@ -36,13 +36,16 @@ class _GastosScreenState extends State<GastosScreen> {
     var estadoCategorias = context.watch<CategoriasBloc>().state;
 
     double totalMonto;
-    if (selectedVehiculoId == 0) {
-      totalMonto =
-          estadoGastos.gastos.fold(0.0, (sum, gasto) => sum + gasto.monto);
-    } else {
-      totalMonto = estadoGastos.gastos
-          .where((gasto) => gasto.vehiculoId == selectedVehiculoId)
-          .fold(0.0, (sum, gasto) => sum + gasto.monto);
+    if (selectedVehiculoId == 0 && selectedCategoriaId == 0) {
+      totalMonto = estadoGastos.gastos.fold(0.0, (sum, gasto) => sum + gasto.monto);
+    } else if(selectedVehiculoId != 0 && selectedCategoriaId == 0) {
+      totalMonto = estadoGastos.gastos.where((gasto) => gasto.vehiculoId == selectedVehiculoId).fold(0.0, (sum, gasto) => sum + gasto.monto);
+    } else if(selectedVehiculoId == 0 && selectedCategoriaId != 0){
+      totalMonto = estadoGastos.gastos.where((gasto) => gasto.categoriaId == selectedCategoriaId).fold(0.0, (sum, gasto) => sum + gasto.monto);
+    }
+    else {
+      totalMonto = estadoGastos.gastos.where((gasto) => gasto.vehiculoId == selectedVehiculoId && gasto.categoriaId == selectedCategoriaId)
+      .fold(0.0, (sum, gasto) => sum + gasto.monto);
     }
 
     return Scaffold(
@@ -203,7 +206,6 @@ class _GastosScreenState extends State<GastosScreen> {
           ),
 
           // Lista de Gastos
-          // Lista de Gastos
           Expanded(
             child: Container(
               margin: EdgeInsets.all(8.0),
@@ -214,7 +216,7 @@ class _GastosScreenState extends State<GastosScreen> {
               ),
               child: estadoGastos.gastos.isEmpty
                   ? Center(
-                      child: Text('No hay gastos'),
+                      child: Text('Agrega un gasto!'),
                     )
                   : ListView.builder(
                       itemCount: filtrarGastos(estadoGastos.gastos,
@@ -224,6 +226,8 @@ class _GastosScreenState extends State<GastosScreen> {
                         var gastosFiltrados = filtrarGastos(estadoGastos.gastos,
                             selectedCategoriaId, selectedVehiculoId);
                         var gasto = gastosFiltrados[index];
+                        print('gastosFiltrados: $gastosFiltrados');
+                        // totalMonto = totalMonto + gastosFiltrados[index].monto;
 
                         // Buscar la categoría correspondiente al gasto
                         Categoria? categoriaDelGasto = estadoCategorias
