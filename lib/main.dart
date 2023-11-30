@@ -53,13 +53,28 @@ class _MyAppState extends State<MyApp> {
       child: MaterialApp(
         title: 'Control de Gastos de Vehículos',
         debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        // primarySwatch: Colors.orange,
-        // visualDensity: VisualDensity.adaptivePlatformDensity,
-      ),
+        theme: ThemeData(
+          primarySwatch: MaterialColor(0xFF002A52, <int, Color>{
+            50: Color(0xFF002A52),
+            100: Color(0xFF002A52),
+            200: Color(0xFF002A52),
+            300: Color(0xFF002A52),
+            400: Color(0xFF002A52),
+            500: Color(0xFF002A52),
+            600: Color(0xFF002A52),
+            700: Color(0xFF002A52),
+            800: Color(0xFF002A52),
+            900: Color(0xFF002A52),
+          }),
+          primaryColor: Color(0xFF002A52),
+          /* accentColor: Colors.amber,
+          accentColorBrightness: Brightness.dark */
+          visualDensity: VisualDensity.adaptivePlatformDensity,
+        ),
         home: Scaffold(
           body: _screens[_currentIndex],
           bottomNavigationBar: BottomNavigationBar(
+            selectedItemColor: Color(0xFF002A52),
             currentIndex: _currentIndex,
             onTap: (index) {
               setState(() {

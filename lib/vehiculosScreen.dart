@@ -15,7 +15,8 @@ class _VehiculosScreenState extends State<VehiculosScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Vehiculos'),
+        backgroundColor: Color(0xFF002A52),
+        title: Text('vehiculos', style: TextStyle(color: Colors.white)),
       ),
       backgroundColor: Color.fromARGB(255, 237, 237, 237),
       body: BlocBuilder<VehiculosBlocDb, VehiculoEstado>(
@@ -37,7 +38,7 @@ class _VehiculosScreenState extends State<VehiculosScreen> {
                 margin: EdgeInsets.all(8.0),
                 padding: EdgeInsets.all(16.0),
                 decoration: BoxDecoration(
-                  color: Colors.blue,
+                  color: Color(0xCC002A52),
                   borderRadius: BorderRadius.circular(8.0),
                 ),
                 child: Column(
@@ -118,10 +119,14 @@ class _VehiculosScreenState extends State<VehiculosScreen> {
         },
       ),
       floatingActionButton: FloatingActionButton(
+        backgroundColor: Color(0xFF002A52),
         onPressed: () {
           _mostrarDialogoAgregarVehiculo(context);
         },
-        child: Icon(Icons.add),
+        child: Icon(
+          Icons.add,
+          color: Colors.white,
+        ),
       ),
     );
   }
@@ -157,9 +162,9 @@ class _VehiculosScreenState extends State<VehiculosScreen> {
                       Text(
                         'Editar Vehículo',
                         style: TextStyle(
-                          fontSize: 24,
+                          fontSize: 20,
                           fontWeight: FontWeight.bold,
-                          color: Colors.blue,
+                          color: Color(0xFF002A52),
                         ),
                       ),
                       IconButton(
@@ -218,7 +223,13 @@ class _VehiculosScreenState extends State<VehiculosScreen> {
 
                           Navigator.of(context).pop();
                         },
-                        child: Text('Guardar'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Color(0xFF002A52), 
+                        ),
+                        child: Text(
+                          'Guardar',
+                          style: TextStyle(color: Colors.white),
+                        ),
                       ),
                       TextButton(
                         onPressed: () {
@@ -227,10 +238,7 @@ class _VehiculosScreenState extends State<VehiculosScreen> {
                         child: Text(
                           'Cancelar',
                           style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white
-                          ),
-                          
+                              fontWeight: FontWeight.bold, color: Colors.white),
                         ),
                         style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.red),
@@ -268,9 +276,9 @@ class _VehiculosScreenState extends State<VehiculosScreen> {
                       Text(
                         'Nuevo Vehículo',
                         style: TextStyle(
-                          fontSize: 24,
+                          fontSize: 20,
                           fontWeight: FontWeight.bold,
-                          color: Colors.blue,
+                          color: Color(0xFF002A52),
                         ),
                       ),
                       IconButton(
@@ -364,7 +372,13 @@ class _VehiculosScreenState extends State<VehiculosScreen> {
 
                           Navigator.of(context).pop();
                         },
-                        child: Text('Guardar'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Color(0xFF002A52), 
+                        ),
+                        child: Text(
+                          'Guardar',
+                          style: TextStyle(color: Colors.white),
+                        ),
                       ),
                       TextButton(
                         onPressed: () {

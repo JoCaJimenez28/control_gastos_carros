@@ -47,9 +47,11 @@ class _GastosScreenState extends State<GastosScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Gastos'),
+        backgroundColor: Color(0xFF002A52),
+        title: Text('Gastos', style: TextStyle(color: Colors.white)),
         actions: [
           PopupMenuButton<String>(
+            iconColor: Colors.white,
             onSelected: (value) {
               // Manejar la opción seleccionada
               if (value == 'ver_categorias') {
@@ -78,7 +80,7 @@ class _GastosScreenState extends State<GastosScreen> {
             margin: EdgeInsets.all(8.0),
             padding: EdgeInsets.all(16.0),
             decoration: BoxDecoration(
-              color: Colors.blue,
+              color: Color(0xCC002A52),
               borderRadius: BorderRadius.circular(8.0),
             ),
             child: Column(
@@ -101,61 +103,103 @@ class _GastosScreenState extends State<GastosScreen> {
           ),
 
           // Filtrar por categoria
-          Container(
-            margin: EdgeInsets.all(8.0),
-            padding: EdgeInsets.symmetric(horizontal: 16.0),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(8.0),
-            ),
-            child: DropdownButton<int>(
-              value: selectedCategoriaId,
-              onChanged: (value) {
-                setState(() {
-                  selectedCategoriaId = value ?? 0;
-                });
-              },
-              items: [
-                DropdownMenuItem<int>(
-                  value: 0,
-                  child: Text('Todos'),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                margin: EdgeInsets.only(top: 8.0),
+                padding: EdgeInsets.all(8.0),
+                child: Text(
+                  'Filtrar por Categoría',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                 ),
-                for (var categoria in estadoCategorias.categorias)
-                  DropdownMenuItem<int>(
-                    value: categoria.id,
-                    child: Text(categoria.nombre),
+              ),
+              Card(
+                margin: EdgeInsets.only(left: 8.0, right: 8.0),
+                elevation: 2,
+                child: Container(
+                  // margin: EdgeInsets.all(8.0),
+                  padding: EdgeInsets.all(8.0),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8.0),
                   ),
-              ],
-            ),
-          ),
-
-          // Dropdown for filtering by vehicle
-          Container(
-            margin: EdgeInsets.all(8.0),
-            padding: EdgeInsets.symmetric(horizontal: 16.0),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(8.0),
-            ),
-            child: DropdownButton<int>(
-              value: selectedVehiculoId,
-              onChanged: (value) {
-                setState(() {
-                  selectedVehiculoId = value ?? 0;
-                });
-              },
-              items: [
-                DropdownMenuItem<int>(
-                  value: 0,
-                  child: Text('Todos'),
+                  child: Row(
+                    children: [
+                      Icon(Icons.category, color: Color(0xCC002A52)),
+                      SizedBox(width: 8),
+                      Expanded(
+                        child: DropdownButton<int>(
+                          value: selectedCategoriaId,
+                          onChanged: (value) {
+                            setState(() {
+                              selectedCategoriaId = value ?? 0;
+                            });
+                          },
+                          items: [
+                            DropdownMenuItem<int>(
+                              value: 0,
+                              child: Text('Todos'),
+                            ),
+                            for (var categoria in estadoCategorias.categorias)
+                              DropdownMenuItem<int>(
+                                value: categoria.id,
+                                child: Text(categoria.nombre),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                for (var vehiculo in estadoVehiculos.vehiculos)
-                  DropdownMenuItem<int>(
-                    value: vehiculo.id,
-                    child: Text(vehiculo.modelo),
+              ),
+              Container(
+                margin: EdgeInsets.only(top: 16.0),
+                padding: EdgeInsets.all(8.0),
+                child: Text(
+                  'Filtrar por Vehículo',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+              ),
+              Card(
+                margin: EdgeInsets.only(left: 8.0, right: 8.0),
+                elevation: 2,
+                child: Container(
+                  padding: EdgeInsets.all(8.0),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8.0),
                   ),
-              ],
-            ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.directions_car, color: Color(0xCC002A52)),
+                      SizedBox(width: 8),
+                      Expanded(
+                        child: DropdownButton<int>(
+                          value: selectedVehiculoId,
+                          onChanged: (value) {
+                            setState(() {
+                              selectedVehiculoId = value ?? 0;
+                            });
+                          },
+                          items: [
+                            DropdownMenuItem<int>(
+                              value: 0,
+                              child: Text('Todos'),
+                            ),
+                            for (var vehiculo in estadoVehiculos.vehiculos)
+                              DropdownMenuItem<int>(
+                                value: vehiculo.id,
+                                child: Text(vehiculo.modelo),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
 
           // Lista de Gastos
@@ -233,19 +277,26 @@ class _GastosScreenState extends State<GastosScreen> {
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           FloatingActionButton(
+            backgroundColor: Color(0xFF002A52),
             onPressed: () {
               // Acciones para el botón "+Categoria"
               _mostrarDialogoAgregarCategoria(context);
             },
-            child: Icon(Icons.category),
+            child: Icon(Icons.category,
+            color: Colors.white,
+            ),
           ),
           SizedBox(width: 16.0), // Espacio entre los dos botones
           FloatingActionButton(
+            backgroundColor: Color(0xFF002A52),
             onPressed: () {
               _mostrarDialogoAgregarGasto(context, estadoVehiculos.vehiculos,
                   estadoCategorias.categorias);
             },
-            child: Icon(Icons.add),
+            child: Icon(
+              Icons.add,
+              color: Colors.white,
+            ),
           ),
         ],
       ),
@@ -292,9 +343,9 @@ class _GastosScreenState extends State<GastosScreen> {
                       Text(
                         'Agregar Gasto',
                         style: TextStyle(
-                          fontSize: 24,
+                          fontSize: 20,
                           fontWeight: FontWeight.bold,
-                          color: Colors.blue,
+                          color: Color(0xFF002A52),
                         ),
                       ),
                       IconButton(
@@ -401,7 +452,13 @@ class _GastosScreenState extends State<GastosScreen> {
 
                           Navigator.of(context).pop();
                         },
-                        child: Text('Guardar'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Color(0xFF002A52), 
+                        ),
+                        child: Text(
+                          'Guardar',
+                          style: TextStyle(color: Colors.white),
+                        ),
                       ),
                       ElevatedButton(
                         onPressed: () {
@@ -410,7 +467,7 @@ class _GastosScreenState extends State<GastosScreen> {
                         child: Text(
                           'Cancelar',
                           style: TextStyle(
-                            // color: Colors.red,
+                            color: Colors.white,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -462,9 +519,9 @@ class _GastosScreenState extends State<GastosScreen> {
                       Text(
                         'Editar Gasto',
                         style: TextStyle(
-                          fontSize: 24,
+                          fontSize: 20,
                           fontWeight: FontWeight.bold,
-                          color: Colors.blue,
+                          color: Color(0xFF002A52),
                         ),
                       ),
                       IconButton(
@@ -553,7 +610,13 @@ class _GastosScreenState extends State<GastosScreen> {
 
                           Navigator.of(context).pop();
                         },
-                        child: Text('Guardar'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Color(0xFF002A52), 
+                        ),
+                        child: Text(
+                          'Guardar',
+                          style: TextStyle(color: Colors.white),
+                        ),
                       ),
                       ElevatedButton(
                         onPressed: () {
@@ -562,7 +625,7 @@ class _GastosScreenState extends State<GastosScreen> {
                         child: Text(
                           'Cancelar',
                           style: TextStyle(
-                            // color: Colors.red,
+                            color: Colors.white,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -598,9 +661,9 @@ class _GastosScreenState extends State<GastosScreen> {
                       Text(
                         'Agregar Categoría',
                         style: TextStyle(
-                          fontSize: 24,
+                          fontSize: 20,
                           fontWeight: FontWeight.bold,
-                          color: Colors.blue,
+                          color: Color(0xFF002A52),
                         ),
                       ),
                       IconButton(
@@ -634,7 +697,13 @@ class _GastosScreenState extends State<GastosScreen> {
 
                           Navigator.of(context).pop();
                         },
-                        child: Text('Guardar'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Color(0xFF002A52), 
+                        ),
+                        child: Text(
+                          'Guardar',
+                          style: TextStyle(color: Colors.white),
+                        ),
                       ),
                       ElevatedButton(
                         onPressed: () {
@@ -643,7 +712,7 @@ class _GastosScreenState extends State<GastosScreen> {
                         child: Text(
                           'Cancelar',
                           style: TextStyle(
-                            // color: Colors.red,
+                            color: Colors.white,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -680,6 +749,7 @@ class _GastosScreenState extends State<GastosScreen> {
                       style: TextStyle(
                         fontSize: 18.0,
                         fontWeight: FontWeight.bold,
+                        color: Color(0xFF002A52)
                       ),
                     ),
                   ),
