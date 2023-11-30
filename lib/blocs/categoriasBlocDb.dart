@@ -162,37 +162,6 @@ class CategoriasBloc extends Bloc<CategoriaEvento, CategoriasEstado> {
     return listaOriginal;
   }
 
-  Future<Vehiculo?> getVehiculoById(int id) async {
-    final Database? db = await DatabaseHelper().database;
-
-    if (db == null) {
-      print('Error: Database not initialized.');
-      return null;
-    }
-
-    List<Map<String, dynamic>> data = await db.query(
-      'vehiculos',
-      where:
-          'ID = ?',
-      whereArgs: [id],
-    );
-
-    if (data.isNotEmpty) {
-      Map<String, dynamic> vehiculoData = data.first;
-      return Vehiculo(
-        id: vehiculoData['ID'],
-        marca: vehiculoData['marca'],
-        placa: vehiculoData['placa'],
-        modelo: vehiculoData['modelo'],
-        anio: vehiculoData['anio'],
-        color: vehiculoData['color'],
-      );
-    } else {
-      print('Vehículo con id $id no encontrado.');
-      return null;
-    }
-  }
-
   Future<Categoria?> getCategoriaByNombre(String nombre) async {
     final Database? db = await DatabaseHelper().database;
 
@@ -279,27 +248,3 @@ class CategoriasBloc extends Bloc<CategoriaEvento, CategoriasEstado> {
   }
 }
 
-Future<List<Vehiculo>> obtenerVehiculos() async {
-  final Database? db = await DatabaseHelper().database;
-  if (db == null) {
-    print('Error: Database not initialized.');
-    return [];
-  }
-  try {
-    final List<Map<String, dynamic>> maps = await db.query('vehiculos');
-
-    return List.generate(maps.length, (index) {
-      return Vehiculo(
-        id: maps[index]['ID'],
-        marca: maps[index]['marca'],
-        placa: maps[index]['placa'],
-        modelo: maps[index]['modelo'],
-        anio: maps[index]['anio'],
-        color: maps[index]['color'],
-      );
-    });
-  } catch (e) {
-    print('Error al obtener vehículos: $e');
-    throw Exception('Error al obtener vehículos: $e');
-  }
-}

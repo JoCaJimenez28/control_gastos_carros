@@ -47,13 +47,16 @@ class _GastosScreenState extends State<GastosScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Gastos'),
+        backgroundColor: Color(0xFF002A52),
+        title: Text('Gastos', style: TextStyle(color: Colors.white)),
         actions: [
           PopupMenuButton<String>(
+            iconColor: Colors.white,
             onSelected: (value) {
               // Manejar la opción seleccionada
               if (value == 'ver_categorias') {
-                _mostrarDialogoVerCategorias(context, estadoCategorias.categorias);
+                _mostrarDialogoVerCategorias(
+                    context, estadoCategorias.categorias);
               }
             },
             itemBuilder: (BuildContext context) {
@@ -77,7 +80,7 @@ class _GastosScreenState extends State<GastosScreen> {
             margin: EdgeInsets.all(8.0),
             padding: EdgeInsets.all(16.0),
             decoration: BoxDecoration(
-              color: Colors.blue,
+              color: Color(0xCC002A52),
               borderRadius: BorderRadius.circular(8.0),
             ),
             child: Column(
@@ -99,35 +102,107 @@ class _GastosScreenState extends State<GastosScreen> {
             ),
           ),
 
-          // Dropdown for filtering by vehicle
-          Container(
-            margin: EdgeInsets.all(8.0),
-            padding: EdgeInsets.symmetric(horizontal: 16.0),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(8.0),
-            ),
-            child: DropdownButton<int>(
-              value: selectedVehiculoId,
-              onChanged: (value) {
-                setState(() {
-                  selectedVehiculoId = value ?? 0;
-                });
-              },
-              items: [
-                DropdownMenuItem<int>(
-                  value: 0,
-                  child: Text('Todos'),
+          // Filtrar por categoria
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                margin: EdgeInsets.only(top: 8.0),
+                padding: EdgeInsets.all(8.0),
+                child: Text(
+                  'Filtrar por Categoría',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                 ),
-                for (var vehiculo in estadoVehiculos.vehiculos)
-                  DropdownMenuItem<int>(
-                    value: vehiculo.id,
-                    child: Text(vehiculo.modelo),
+              ),
+              Card(
+                margin: EdgeInsets.only(left: 8.0, right: 8.0),
+                elevation: 2,
+                child: Container(
+                  // margin: EdgeInsets.all(8.0),
+                  padding: EdgeInsets.all(8.0),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8.0),
                   ),
-              ],
-            ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.category, color: Color(0xCC002A52)),
+                      SizedBox(width: 8),
+                      Expanded(
+                        child: DropdownButton<int>(
+                          value: selectedCategoriaId,
+                          onChanged: (value) {
+                            setState(() {
+                              selectedCategoriaId = value ?? 0;
+                            });
+                          },
+                          items: [
+                            DropdownMenuItem<int>(
+                              value: 0,
+                              child: Text('Todos'),
+                            ),
+                            for (var categoria in estadoCategorias.categorias)
+                              DropdownMenuItem<int>(
+                                value: categoria.id,
+                                child: Text(categoria.nombre),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Container(
+                margin: EdgeInsets.only(top: 16.0),
+                padding: EdgeInsets.all(8.0),
+                child: Text(
+                  'Filtrar por Vehículo',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+              ),
+              Card(
+                margin: EdgeInsets.only(left: 8.0, right: 8.0),
+                elevation: 2,
+                child: Container(
+                  padding: EdgeInsets.all(8.0),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.directions_car, color: Color(0xCC002A52)),
+                      SizedBox(width: 8),
+                      Expanded(
+                        child: DropdownButton<int>(
+                          value: selectedVehiculoId,
+                          onChanged: (value) {
+                            setState(() {
+                              selectedVehiculoId = value ?? 0;
+                            });
+                          },
+                          items: [
+                            DropdownMenuItem<int>(
+                              value: 0,
+                              child: Text('Todos'),
+                            ),
+                            for (var vehiculo in estadoVehiculos.vehiculos)
+                              DropdownMenuItem<int>(
+                                value: vehiculo.id,
+                                child: Text(vehiculo.modelo),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
 
+          // Lista de Gastos
           // Lista de Gastos
           Expanded(
             child: Container(
@@ -142,50 +217,56 @@ class _GastosScreenState extends State<GastosScreen> {
                       child: Text('No hay gastos'),
                     )
                   : ListView.builder(
-                      itemCount: estadoGastos.gastos.length,
+                      itemCount: filtrarGastos(estadoGastos.gastos,
+                              selectedCategoriaId, selectedVehiculoId)
+                          .length,
                       itemBuilder: (context, index) {
-                        if (selectedVehiculoId == 0 ||
-                            estadoGastos.gastos[index].vehiculoId ==
-                                selectedVehiculoId) {
-                          return ListTile(
-                            title: Text(
-                              '${estadoGastos.gastos[index].tipoGasto} - ${estadoGastos.gastos[index].monto}',
-                            ),
-                            subtitle: Text(
-                              'Descripcion: ${estadoGastos.gastos[index].descripcion} - Fecha: ${estadoGastos.gastos[index].fecha}',
-                            ),
-                            trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                IconButton(
-                                  icon: Icon(Icons.edit),
-                                  color: Colors.blueGrey,
-                                  onPressed: () {
-                                    _mostrarDialogoEditarGasto(
-                                      context,
-                                      estadoGastos.gastos[index],
-                                      estadoVehiculos.vehiculos,
-                                      estadoCategorias.categorias,
-                                    );
-                                  },
-                                ),
-                                IconButton(
-                                  icon: Icon(Icons.delete),
-                                  color: Colors.red,
-                                  onPressed: () {
-                                    context.read<GastosBloc>().add(
-                                          DeleteGasto(
-                                            gasto: estadoGastos.gastos[index],
-                                          ),
-                                        );
-                                  },
-                                ),
-                              ],
-                            ),
-                          );
-                        } else {
-                          return SizedBox.shrink();
-                        }
+                        var gastosFiltrados = filtrarGastos(estadoGastos.gastos,
+                            selectedCategoriaId, selectedVehiculoId);
+                        var gasto = gastosFiltrados[index];
+
+                        // Buscar la categoría correspondiente al gasto
+                        Categoria? categoriaDelGasto = estadoCategorias
+                            .categorias
+                            .firstWhereOrNull((categoria) =>
+                                categoria.id == gasto.categoriaId);
+
+                        return ListTile(
+                          title: Text(
+                            '${categoriaDelGasto?.nombre ?? 'Sin categoría'} - ${gasto.monto}',
+                          ),
+                          subtitle: Text(
+                            'Descripcion: ${gasto.descripcion} - Fecha: ${gasto.fecha}',
+                          ),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: Icon(Icons.edit),
+                                color: Colors.blueGrey,
+                                onPressed: () {
+                                  _mostrarDialogoEditarGasto(
+                                    context,
+                                    gasto,
+                                    estadoVehiculos.vehiculos,
+                                    estadoCategorias.categorias,
+                                  );
+                                },
+                              ),
+                              IconButton(
+                                icon: Icon(Icons.delete),
+                                color: Colors.red,
+                                onPressed: () {
+                                  context.read<GastosBloc>().add(
+                                        DeleteGasto(
+                                          gasto: gasto,
+                                        ),
+                                      );
+                                },
+                              ),
+                            ],
+                          ),
+                        );
                       },
                     ),
             ),
@@ -196,19 +277,26 @@ class _GastosScreenState extends State<GastosScreen> {
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           FloatingActionButton(
+            backgroundColor: Color(0xFF002A52),
             onPressed: () {
               // Acciones para el botón "+Categoria"
               _mostrarDialogoAgregarCategoria(context);
             },
-            child: Icon(Icons.category),
+            child: Icon(Icons.category,
+            color: Colors.white,
+            ),
           ),
           SizedBox(width: 16.0), // Espacio entre los dos botones
           FloatingActionButton(
+            backgroundColor: Color(0xFF002A52),
             onPressed: () {
               _mostrarDialogoAgregarGasto(context, estadoVehiculos.vehiculos,
                   estadoCategorias.categorias);
             },
-            child: Icon(Icons.add),
+            child: Icon(
+              Icons.add,
+              color: Colors.white,
+            ),
           ),
         ],
       ),
@@ -255,9 +343,9 @@ class _GastosScreenState extends State<GastosScreen> {
                       Text(
                         'Agregar Gasto',
                         style: TextStyle(
-                          fontSize: 24,
+                          fontSize: 20,
                           fontWeight: FontWeight.bold,
-                          color: Colors.blue,
+                          color: Color(0xFF002A52),
                         ),
                       ),
                       IconButton(
@@ -303,7 +391,7 @@ class _GastosScreenState extends State<GastosScreen> {
                   ),
                   DropdownButtonFormField<Categoria>(
                     decoration: InputDecoration(labelText: 'Categoria'),
-                    value: selectedCategoria, 
+                    value: selectedCategoria,
                     items: categorias.map((Categoria categoria) {
                       return DropdownMenuItem<Categoria>(
                         value: categoria,
@@ -364,7 +452,13 @@ class _GastosScreenState extends State<GastosScreen> {
 
                           Navigator.of(context).pop();
                         },
-                        child: Text('Guardar'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Color(0xFF002A52), 
+                        ),
+                        child: Text(
+                          'Guardar',
+                          style: TextStyle(color: Colors.white),
+                        ),
                       ),
                       ElevatedButton(
                         onPressed: () {
@@ -373,7 +467,7 @@ class _GastosScreenState extends State<GastosScreen> {
                         child: Text(
                           'Cancelar',
                           style: TextStyle(
-                            // color: Colors.red,
+                            color: Colors.white,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -425,9 +519,9 @@ class _GastosScreenState extends State<GastosScreen> {
                       Text(
                         'Editar Gasto',
                         style: TextStyle(
-                          fontSize: 24,
+                          fontSize: 20,
                           fontWeight: FontWeight.bold,
-                          color: Colors.blue,
+                          color: Color(0xFF002A52),
                         ),
                       ),
                       IconButton(
@@ -516,7 +610,13 @@ class _GastosScreenState extends State<GastosScreen> {
 
                           Navigator.of(context).pop();
                         },
-                        child: Text('Guardar'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Color(0xFF002A52), 
+                        ),
+                        child: Text(
+                          'Guardar',
+                          style: TextStyle(color: Colors.white),
+                        ),
                       ),
                       ElevatedButton(
                         onPressed: () {
@@ -525,7 +625,7 @@ class _GastosScreenState extends State<GastosScreen> {
                         child: Text(
                           'Cancelar',
                           style: TextStyle(
-                            // color: Colors.red,
+                            color: Colors.white,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -561,9 +661,9 @@ class _GastosScreenState extends State<GastosScreen> {
                       Text(
                         'Agregar Categoría',
                         style: TextStyle(
-                          fontSize: 24,
+                          fontSize: 20,
                           fontWeight: FontWeight.bold,
-                          color: Colors.blue,
+                          color: Color(0xFF002A52),
                         ),
                       ),
                       IconButton(
@@ -592,11 +692,18 @@ class _GastosScreenState extends State<GastosScreen> {
                                       nombre: nombreCategoriaController.text),
                                 ),
                               );
-                          print('Categoría agregada: ${nombreCategoriaController.text}');
+                          print(
+                              'Categoría agregada: ${nombreCategoriaController.text}');
 
                           Navigator.of(context).pop();
                         },
-                        child: Text('Guardar'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Color(0xFF002A52), 
+                        ),
+                        child: Text(
+                          'Guardar',
+                          style: TextStyle(color: Colors.white),
+                        ),
                       ),
                       ElevatedButton(
                         onPressed: () {
@@ -605,7 +712,7 @@ class _GastosScreenState extends State<GastosScreen> {
                         child: Text(
                           'Cancelar',
                           style: TextStyle(
-                            // color: Colors.red,
+                            color: Colors.white,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -623,7 +730,8 @@ class _GastosScreenState extends State<GastosScreen> {
     );
   }
 
-  void _mostrarDialogoVerCategorias(BuildContext context, List<Categoria> categorias) {
+  void _mostrarDialogoVerCategorias(
+      BuildContext context, List<Categoria> categorias) {
     print(categorias);
     showDialog(
       context: context,
@@ -641,6 +749,7 @@ class _GastosScreenState extends State<GastosScreen> {
                       style: TextStyle(
                         fontSize: 18.0,
                         fontWeight: FontWeight.bold,
+                        color: Color(0xFF002A52)
                       ),
                     ),
                   ),
@@ -653,12 +762,12 @@ class _GastosScreenState extends State<GastosScreen> {
                           color: Colors.red,
                           onPressed: () {
                             context.read<CategoriasBloc>().add(
-                              DeleteCategoria(
-                                categoria: categoria,
-                              ),
-                            );
+                                  DeleteCategoria(
+                                    categoria: categoria,
+                                  ),
+                                );
 
-                            Navigator.of(context).pop(); 
+                            Navigator.of(context).pop();
                           },
                         ),
                       )
@@ -679,6 +788,31 @@ class _GastosScreenState extends State<GastosScreen> {
         );
       },
     );
+  }
+
+  List<Gasto> filtrarGastos(
+      List<Gasto> todosLosGastos, int categoriaId, int vehiculoId) {
+    if (categoriaId == 0 && vehiculoId == 0) {
+      // Mostrar todos los gastos si no hay filtros aplicados
+      return todosLosGastos;
+    } else if (categoriaId == 0) {
+      // Filtrar por vehículo si la categoría es "Todos"
+      return todosLosGastos
+          .where((gasto) => gasto.vehiculoId == vehiculoId)
+          .toList();
+    } else if (vehiculoId == 0) {
+      // Filtrar por categoría si el vehículo es "Todos"
+      return todosLosGastos
+          .where((gasto) => gasto.categoriaId == categoriaId)
+          .toList();
+    } else {
+      // Filtrar por ambos: categoría y vehículo
+      return todosLosGastos
+          .where((gasto) =>
+              gasto.categoriaId == categoriaId &&
+              gasto.vehiculoId == vehiculoId)
+          .toList();
+    }
   }
 
   // void _mostrarDialogoVerCategorias(BuildContext context, List<Categoria> categorias) {
