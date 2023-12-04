@@ -235,12 +235,16 @@ class _GastosScreenState extends State<GastosScreen> {
                             .firstWhereOrNull((categoria) =>
                                 categoria.id == gasto.categoriaId);
 
+                        // Buscar el vehículo correspondiente al gasto
+                        Vehiculo? vehiculoDelGasto = estadoVehiculos.vehiculos
+                          .firstWhereOrNull((vehiculo) => vehiculo.id == gasto.vehiculoId);
+
                         return ListTile(
                           title: Text(
-                            '${categoriaDelGasto?.nombre ?? 'Sin categoría'} - ${gasto.monto}',
+                            '${vehiculoDelGasto?.modelo} - ${categoriaDelGasto?.nombre ?? 'Sin categoría'} - ${gasto.monto}',
                           ),
                           subtitle: Text(
-                            'Descripcion: ${gasto.descripcion} - Fecha: ${gasto.fecha}',
+                            'Fecha: ${DateFormat("dd-MM-yyyy").format(gasto.fecha)} \nDescripcion: ${gasto.descripcion}',
                           ),
                           trailing: Row(
                             mainAxisSize: MainAxisSize.min,
@@ -261,10 +265,9 @@ class _GastosScreenState extends State<GastosScreen> {
                                 icon: Icon(Icons.delete),
                                 color: Colors.red,
                                 onPressed: () {
-                                  context.read<GastosBloc>().add(
-                                        DeleteGasto(
-                                          gasto: gasto,
-                                        ),
+                                  _mostrarDialogoEliminarGasto(
+                                        context,
+                                        estadoGastos.gastos[index],
                                       );
                                 },
                               ),
@@ -318,29 +321,25 @@ class _GastosScreenState extends State<GastosScreen> {
   }
 
   void _mostrarDialogoAgregarGasto(BuildContext context,
-      List<Vehiculo> vehiculos, List<Categoria> categorias) {
-    // TextEditingController idController = TextEditingController();
-    TextEditingController tipoController = TextEditingController();
-    TextEditingController montoController = TextEditingController();
-    TextEditingController fechaController =
-        TextEditingController(text: DateTime.now().toString());
-    TextEditingController descripcionController = TextEditingController();
-    TextEditingController categoriaController = TextEditingController();
-    TextEditingController vehiculoController = TextEditingController();
+    List<Vehiculo> vehiculos, List<Categoria> categorias) {
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  TextEditingController tipoController = TextEditingController();
+  TextEditingController montoController = TextEditingController();
+  TextEditingController fechaController =
+      TextEditingController(text: DateTime.now().toString());
+  TextEditingController descripcionController = TextEditingController();
 
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return Dialog(
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return Dialog(
+        child: Form(
+          key: _formKey,
           child: SingleChildScrollView(
             child: Container(
               padding: EdgeInsets.all(24),
               child: Column(
                 children: [
-                  // TextField(
-                  //   decoration: InputDecoration(labelText: 'ID'),
-                  //   controller: idController,
-                  // ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -360,13 +359,26 @@ class _GastosScreenState extends State<GastosScreen> {
                       ),
                     ],
                   ),
-                  TextField(
-                    decoration: InputDecoration(labelText: 'Tipo'),
-                    controller: tipoController,
-                  ),
-                  TextField(
+                  // TextFormField(
+                  //   decoration: InputDecoration(labelText: 'Tipo'),
+                  //   controller: tipoController,
+                  //   validator: (value) {
+                  //     if (value == null || value.isEmpty) {
+                  //       return 'Este campo no puede estar vacío';
+                  //     }
+                  //     return null;
+                  //   },
+                  // ),
+                  TextFormField(
                     decoration: InputDecoration(labelText: 'Monto'),
                     controller: montoController,
+                    keyboardType: TextInputType.number,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Este campo no puede estar vacío';
+                      }
+                      return null;
+                    },
                   ),
                   DateTimeField(
                     decoration: InputDecoration(labelText: 'Fecha'),
@@ -429,9 +441,15 @@ class _GastosScreenState extends State<GastosScreen> {
                         ? '${selectedVehiculo!.marca} - ${selectedVehiculo!.modelo}'
                         : 'Seleccione un vehículo'),
                   ),
-                  TextField(
+                  TextFormField(
                     decoration: InputDecoration(labelText: 'Descripción'),
                     controller: descripcionController,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Este campo no puede estar vacío';
+                      }
+                      return null;
+                    },
                   ),
                   SizedBox(height: 16),
                   Row(
@@ -439,25 +457,26 @@ class _GastosScreenState extends State<GastosScreen> {
                     children: [
                       ElevatedButton(
                         onPressed: () {
-                          context.read<GastosBloc>().add(
-                                AddGasto(
-                                  gasto: Gasto(
-                                    // id: int.parse(idController.text),
-                                    tipoGasto: tipoController.text,
-                                    monto: double.parse(montoController.text),
-                                    fecha: DateTime.parse(fechaController.text),
-                                    descripcion: descripcionController.text,
-                                    categoriaId: selectedCategoria?.id ?? 0,
-                                    vehiculoId: selectedVehiculo?.id ?? 0,
+                          if (_formKey.currentState!.validate()) {
+                            context.read<GastosBloc>().add(
+                                  AddGasto(
+                                    gasto: Gasto(
+                                      tipoGasto: tipoController.text,
+                                      monto: double.parse(montoController.text),
+                                      fecha: DateTime.parse(fechaController.text),
+                                      descripcion: descripcionController.text,
+                                      categoriaId: selectedCategoria?.id ?? 0,
+                                      vehiculoId: selectedVehiculo?.id ?? 0,
+                                    ),
+                                    context: context,
                                   ),
-                                  context: context,
-                                ),
-                              );
+                                );
 
-                          Navigator.of(context).pop();
+                            Navigator.of(context).pop();
+                          }
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Color(0xFF002A52), 
+                          backgroundColor: Color(0xFF002A52),
                         ),
                         child: Text(
                           'Guardar',
@@ -484,34 +503,43 @@ class _GastosScreenState extends State<GastosScreen> {
               ),
             ),
           ),
-        );
-      },
-    );
-  }
+        ),
+      );
+    },
+  );
+}
 
-  void _mostrarDialogoEditarGasto(BuildContext context, Gasto gasto,
-      List<Vehiculo> vehiculos, List<Categoria> categorias) {
-    TextEditingController tipoController =
-        TextEditingController(text: gasto.tipoGasto);
-    TextEditingController montoController =
-        TextEditingController(text: gasto.monto.toString());
-    TextEditingController fechaController =
-        TextEditingController(text: formatDate(gasto.fecha));
-    TextEditingController descripcionController =
-        TextEditingController(text: gasto.descripcion);
 
-    Categoria? categoriaSeleccionada =
-        categorias.firstWhereOrNull((v) => v.id == gasto.categoriaId);
-    TextEditingController categoriaController = TextEditingController();
+ void _mostrarDialogoEditarGasto(
+  BuildContext context,
+  Gasto gasto,
+  List<Vehiculo> vehiculos,
+  List<Categoria> categorias,
+) {
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  TextEditingController tipoController =
+      TextEditingController(text: gasto.tipoGasto);
+  TextEditingController montoController =
+      TextEditingController(text: gasto.monto.toString());
+  TextEditingController fechaController =
+      TextEditingController(text: formatDate(gasto.fecha));
+  TextEditingController descripcionController =
+      TextEditingController(text: gasto.descripcion);
 
-    Vehiculo? vehiculoSeleccionado =
-        vehiculos.firstWhereOrNull((v) => v.id == gasto.vehiculoId);
-    TextEditingController vehiculoController = TextEditingController();
+  Categoria? categoriaSeleccionada =
+      categorias.firstWhereOrNull((v) => v.id == gasto.categoriaId);
+  TextEditingController categoriaController = TextEditingController();
 
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return Dialog(
+  Vehiculo? vehiculoSeleccionado =
+      vehiculos.firstWhereOrNull((v) => v.id == gasto.vehiculoId);
+  TextEditingController vehiculoController = TextEditingController();
+
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return Dialog(
+        child: Form(
+          key: _formKey,
           child: SingleChildScrollView(
             child: Container(
               padding: EdgeInsets.all(24),
@@ -537,13 +565,25 @@ class _GastosScreenState extends State<GastosScreen> {
                     ],
                   ),
                   SizedBox(height: 16),
-                  TextField(
+                  TextFormField(
                     decoration: InputDecoration(labelText: 'Tipo'),
                     controller: tipoController,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Este campo no puede estar vacío';
+                      }
+                      return null;
+                    },
                   ),
-                  TextField(
+                  TextFormField(
                     decoration: InputDecoration(labelText: 'Monto'),
                     controller: montoController,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Este campo no puede estar vacío';
+                      }
+                      return null;
+                    },
                   ),
                   DateTimeField(
                     decoration: InputDecoration(labelText: 'Fecha'),
@@ -554,9 +594,6 @@ class _GastosScreenState extends State<GastosScreen> {
                         var selectedDate = date!;
                         fechaController.text = formatDate(selectedDate);
                       });
-                    },
-                    onSaved: (date) {
-                      // Handle when the form is saved
                     },
                     onShowPicker: (context, currentValue) async {
                       final date = await showDatePicker(
@@ -589,33 +626,41 @@ class _GastosScreenState extends State<GastosScreen> {
                       });
                     },
                   ),
-                  TextField(
+                  TextFormField(
                     decoration: InputDecoration(labelText: 'Descripción'),
                     controller: descripcionController,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Este campo no puede estar vacío';
+                      }
+                      return null;
+                    },
                   ),
                   SizedBox(height: 16),
                   Row(
                     children: [
                       ElevatedButton(
                         onPressed: () {
-                          context.read<GastosBloc>().add(
-                                UpdateGasto(
-                                  gasto: Gasto(
-                                    id: gasto.id,
-                                    tipoGasto: tipoController.text,
-                                    monto: double.parse(montoController.text),
-                                    fecha: DateTime.parse(fechaController.text),
-                                    descripcion: descripcionController.text,
-                                    categoriaId: categoriaSeleccionada?.id ?? 0,
-                                    vehiculoId: vehiculoSeleccionado?.id ?? 0,
+                          if (_formKey.currentState!.validate()) {
+                            context.read<GastosBloc>().add(
+                                  UpdateGasto(
+                                    gasto: Gasto(
+                                      id: gasto.id,
+                                      tipoGasto: tipoController.text,
+                                      monto: double.parse(montoController.text),
+                                      fecha: DateTime.parse(fechaController.text),
+                                      descripcion: descripcionController.text,
+                                      categoriaId: categoriaSeleccionada?.id ?? 0,
+                                      vehiculoId: vehiculoSeleccionado?.id ?? 0,
+                                    ),
                                   ),
-                                ),
-                              );
+                                );
 
-                          Navigator.of(context).pop();
+                            Navigator.of(context).pop();
+                          }
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Color(0xFF002A52), 
+                          backgroundColor: Color(0xFF002A52),
                         ),
                         child: Text(
                           'Guardar',
@@ -642,18 +687,22 @@ class _GastosScreenState extends State<GastosScreen> {
               ),
             ),
           ),
-        );
-      },
-    );
-  }
+        ),
+      );
+    },
+  );
+}
 
-  void _mostrarDialogoAgregarCategoria(BuildContext context) {
-    TextEditingController nombreCategoriaController = TextEditingController();
+void _mostrarDialogoAgregarCategoria(BuildContext context) {
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  TextEditingController nombreCategoriaController = TextEditingController();
 
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return Dialog(
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return Dialog(
+        child: Form(
+          key: _formKey,
           child: SingleChildScrollView(
             child: Container(
               padding: EdgeInsets.all(24),
@@ -679,10 +728,21 @@ class _GastosScreenState extends State<GastosScreen> {
                     ],
                   ),
                   SizedBox(height: 16),
-                  TextField(
+                  TextFormField(
                     decoration:
                         InputDecoration(labelText: 'Nombre de la Categoría'),
                     controller: nombreCategoriaController,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Este campo no puede estar vacío';
+                      }
+
+                      final RegExp caracteresEspeciales = RegExp(r'[!@#%^&*(),.?":{}|<>0-9]');
+                      if (caracteresEspeciales.hasMatch(value)) {
+                        return 'No se permiten caracteres especiales ni números';
+                      }
+                      return null;
+                    },
                   ),
                   SizedBox(height: 16),
                   Row(
@@ -690,19 +750,21 @@ class _GastosScreenState extends State<GastosScreen> {
                     children: [
                       ElevatedButton(
                         onPressed: () {
-                          context.read<CategoriasBloc>().add(
-                                AddCategoria(
-                                  categoria: Categoria(
-                                      nombre: nombreCategoriaController.text),
-                                ),
-                              );
-                          print(
-                              'Categoría agregada: ${nombreCategoriaController.text}');
+                          if (_formKey.currentState!.validate()) {
+                            context.read<CategoriasBloc>().add(
+                                  AddCategoria(
+                                    categoria: Categoria(
+                                        nombre: nombreCategoriaController.text),
+                                  ),
+                                );
+                            print(
+                                'Categoría agregada: ${nombreCategoriaController.text}');
 
-                          Navigator.of(context).pop();
+                            Navigator.of(context).pop();
+                          }
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Color(0xFF002A52), 
+                          backgroundColor: Color(0xFF002A52),
                         ),
                         child: Text(
                           'Guardar',
@@ -729,10 +791,11 @@ class _GastosScreenState extends State<GastosScreen> {
               ),
             ),
           ),
-        );
-      },
-    );
-  }
+        ),
+      );
+    },
+  );
+}
 
   void _mostrarDialogoVerCategorias(
       BuildContext context, List<Categoria> categorias) {
@@ -765,13 +828,8 @@ class _GastosScreenState extends State<GastosScreen> {
                           icon: Icon(Icons.delete),
                           color: Colors.red,
                           onPressed: () {
-                            context.read<CategoriasBloc>().add(
-                                  DeleteCategoria(
-                                    categoria: categoria,
-                                  ),
-                                );
-
-                            Navigator.of(context).pop();
+                            _mostrarDialogoEliminarCategoria(context, categoria);
+                            
                           },
                         ),
                       )
@@ -817,6 +875,105 @@ class _GastosScreenState extends State<GastosScreen> {
               gasto.vehiculoId == vehiculoId)
           .toList();
     }
+  }
+
+  void _mostrarDialogoEliminarGasto(
+      BuildContext context, Gasto gasto) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Eliminar Gasto'),
+          content: Text('¿Estás seguro que deseas eliminar este gasto?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Cancelar
+              },
+              child: Text('Cancelar',
+                  style: TextStyle(
+                    color: Color(0xFF002A52),
+                    fontWeight: FontWeight.bold,
+                  )),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                // Eliminar el vehículo
+                context.read<GastosBloc>().add(
+                      DeleteGasto(
+                        gasto: gasto,
+                      ),
+                    );
+                Navigator.of(context).pop(); // Cerrar el diálogo
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red, // Color rojo para indicar peligro
+              ),
+              child: Text(
+                'Aceptar',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _mostrarDialogoEliminarCategoria(
+      BuildContext context, Categoria categoria) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Eliminar Categoría'),
+          content: Text('¿Estás seguro que deseas eliminar esta categoría?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Cancelar
+              },
+              child: Text('Cancelar',
+                  style: TextStyle(
+                    color: Color(0xFF002A52),
+                    fontWeight: FontWeight.bold,
+                  )),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                context.read<CategoriasBloc>().add(
+                      DeleteCategoria(
+                        categoria: categoria,
+                      ),
+                    );
+                ScaffoldMessenger.of(context)
+                                  .showSnackBar(SnackBar(
+                                content: Text(
+                                  "categoria eliminada.",
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                                // backgroundColor: Colors.green,
+                              ));
+                Navigator.of(context).pop(); // Cerrar el diálogo
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red, // Color rojo para indicar peligro
+              ),
+              child: Text(
+                'Aceptar',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   // void _mostrarDialogoVerCategorias(BuildContext context, List<Categoria> categorias) {

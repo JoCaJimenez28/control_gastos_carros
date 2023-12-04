@@ -40,11 +40,12 @@ class ObtenerVehiculos extends VehiculoEvento {
 //Estados
 class VehiculoEstado with EquatableMixin {
   final List<Vehiculo> vehiculos;
+  String message = "";
   String error = "";
 
   VehiculoEstado._() : vehiculos = [];
 
-  VehiculoEstado({required this.vehiculos, this.error=""});
+  VehiculoEstado({required this.vehiculos, this.error="", this.message=""});
 
   @override
   List<Object?> get props => [vehiculos];
@@ -71,26 +72,27 @@ class VehiculosBlocDb extends Bloc<VehiculoEvento, VehiculoEstado> {
     try {
       await DatabaseHelper().iniciarDatabase();
       _vehiculos = await insertVehiculo(event.vehiculo);
-      emit(VehiculoEstado(vehiculos: _vehiculos));
+      emit(VehiculoEstado(vehiculos: _vehiculos, error: "", message: "agregado con exito"));
     } catch (e) {
-      emitErrorSnackBar(emit, 'Error al agregar vehículo: $e');
+      emit(VehiculoEstado(vehiculos: [], error: "Ocurrió un error al agregar el vehiculo", message: ""));
     }
   }
 
   void _updateVehiculo(UpdateVehiculo event, Emitter<VehiculoEstado> emit) async {
     try {
-      Vehiculo? editvehiculo = await getVehiculoByPlaca(event.vehiculo.placa);
+      Vehiculo? editvehiculo = await getVehiculoById(event.vehiculo.id!);
       print("editVehiculo: $editvehiculo");
 
       if (editvehiculo != null) {
         _vehiculos = await updateVehiculo(event.vehiculo);
-        emit(VehiculoEstado(vehiculos: _vehiculos));
+        emit(VehiculoEstado(vehiculos: _vehiculos, message: 'Vehiculo actualizado!'));
         print('Vehículo actualizado con éxito!');
       } else {
-        emitErrorSnackBar(emit, 'Vehículo no encontrado para actualizar.');
+        throw ErrorHint('hubo un problema al actualizar el vehiculo');
       }
     } catch (e) {
-      emitErrorSnackBar(emit, 'Error al actualizar el vehículo: $e');
+      throw ErrorHint('hubo un problema al actualizar el vehiculo');
+
     }
   }
 
@@ -99,8 +101,9 @@ class VehiculosBlocDb extends Bloc<VehiculoEvento, VehiculoEstado> {
       List<Vehiculo> updatedList = await deleteVehiculo(event.vehiculo);
       emit(VehiculoEstado(vehiculos: updatedList));
       print('Vehículo eliminado con éxito!');
+      
     } catch (e) {
-      emitErrorSnackBar(emit, 'Error al eliminar el vehículo: $e');
+      throw ErrorHint('hubo un problema al eliminar el vehiculo');
     }
   }
 
