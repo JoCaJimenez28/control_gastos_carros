@@ -20,7 +20,7 @@ class DatabaseHelper {
 
     try {
       rutaBaseDatos =
-          await fabricaBaseDatos.getDatabasesPath() + "/databaseConVals.db";
+          await fabricaBaseDatos.getDatabasesPath() + "/databaseConVals3.db";
       return dbGestor = await fabricaBaseDatos.openDatabase(
         rutaBaseDatos,
         options: OpenDatabaseOptions(
@@ -43,7 +43,9 @@ class DatabaseHelper {
                 'descripcion TEXT(80), '
                 'vehiculoId INTEGER, '
                 'categoriaId INTEGER, '
+                'CONSTRAINT  fk_vehiculos '
                 'FOREIGN KEY (vehiculoId) REFERENCES vehiculos(ID) ON DELETE CASCADE, '
+                'CONSTRAINT  fk_categorias '
                 'FOREIGN KEY (categoriaId) REFERENCES categorias(ID)'
                 ');');
           },

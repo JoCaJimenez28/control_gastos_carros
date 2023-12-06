@@ -28,9 +28,9 @@ class _InicioScreenState extends State<InicioScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
-     DateTime now = DateTime.now();
-    fechaInicio = DateTime(now.year, now.month, now.day-7);
-    fechaFin = DateTime(now.year, now.month, now.day);
+    DateTime now = DateTime.now();
+    fechaInicio = DateTime(now.year, now.month, now.day - 7);
+    fechaFin = DateTime(now.year, now.month, now.day + 1);
   }
 
   @override
@@ -184,13 +184,13 @@ class _InicioScreenState extends State<InicioScreen>
                     return showDatePicker(
                       context: context,
                       firstDate: DateTime(2023, 1, 1),
-                      initialDate: currentValue ?? DateTime.now(),
+                      initialDate: currentValue ?? fechaFin,
                       lastDate: DateTime(2023, 12, 31),
                     );
                   },
                   onChanged: (date) {
                     setState(() {
-                      fechaFin = date ?? fechaFin;
+                      fechaFin = date?.add(Duration(days: 1)) ?? fechaFin;
                     });
                   },
                   decoration: InputDecoration(
@@ -218,9 +218,11 @@ class _InicioScreenState extends State<InicioScreen>
                       Text('No hay gastos dentro de las fechas seleccionadas.'),
                 )
               : Column(
-                children: [
-                  SfCircularChart(
-                      title: ChartTitle(text: '% Gastos totales por vehiculo: $totalGastos'),
+                  children: [
+                    SfCircularChart(
+                      title: ChartTitle(
+                          text:
+                              '% Gastos semanales por vehiculo: \$$totalGastos'),
                       legend: Legend(isVisible: true),
                       series: <CircularSeries>[
                         PieSeries<ChartData, String>(
@@ -232,32 +234,129 @@ class _InicioScreenState extends State<InicioScreen>
                         ),
                       ],
                     ),
-                  
-                ],
-              ),
+                  ],
+                ),
         ),
-        // Expanded(
-        //   child: ListView.builder(
-        //     itemCount: porcentajes.length,
-        //     itemBuilder: (context, index) {
-        //       var entry = porcentajes.entries.elementAt(index);
-        //       var vehiculo = vehiculos.firstWhere((v) => v.id == entry.key);
-        //       return ListTile(
-        //         title: Text(
-        //             '${vehiculo.modelo} - Total: \$${(entry.value * totalGastos / 100).toStringAsFixed(2)} (${entry.value.toStringAsFixed(2)}%)'),
-        //       );
-        //     },
+
+        // Container(
+        //   margin: EdgeInsets.all(8.0),
+        //   padding: EdgeInsets.all(16.0),
+        //   decoration: BoxDecoration(
+        //     color: Colors.white,
+        //     borderRadius: BorderRadius.circular(8.0),
         //   ),
+        //   child: _buildGastosDelDia(gastosFiltrados, vehiculos, categorias),
         // ),
+        Expanded(
+          child: Container(
+            margin: EdgeInsets.all(8.0),
+                  padding: EdgeInsets.all(8.0),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+            child: _buildGastosDelDia(gastosFiltrados, vehiculos, categorias)
+          ),
+          // child: ListView.builder(
+          //   itemCount: porcentajes.length,
+          //   itemBuilder: (context, index) {
+          //     var entry = porcentajes.entries.elementAt(index);
+          //     var vehiculo = vehiculos.firstWhere((v) => v.id == entry.key);
+          //     return ListTile(
+          //       title: Text(
+          //           '${vehiculo.modelo} - Total: \$${(entry.value * totalGastos / 100).toStringAsFixed(2)} (${entry.value.toStringAsFixed(2)}%)'),
+          //     );
+          //   },
+          // ),
+        ),
       ],
     );
   }
 
+  Widget _buildGastosDelDia(List<Gasto> gastos, List<Vehiculo> vehiculos,
+      List<Categoria> categorias) {
+    DateTime hoy = DateTime.now();
+    List<Gasto> gastosDelDia =
+        gastos.where((g) => _esMismoDia(g.fecha, hoy)).toList();
+
+    double totalGastosDelDia =
+        gastosDelDia.fold(0, (previous, gasto) => previous + gasto.monto);
+
+    if (gastosDelDia.isEmpty) {
+      return Center(
+        child: Text('No has realizado gastos hoy.'),
+      );
+    }
+
+    return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Container(
+            alignment: Alignment.center,
+            margin: EdgeInsets.all(2.0),
+                  padding: EdgeInsets.all(2.0),
+                  decoration: BoxDecoration(
+                    color: Color(0xCC002A52),
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+            child: Text(
+              'Gastos del Día: \$${totalGastosDelDia.toStringAsFixed(2)}',
+              style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold, color: Colors.white),
+            ),
+          ),
+          SizedBox(height: 2.0),
+          // Text(
+          //   'Total del día: \$${totalGastosDelDia.toStringAsFixed(2)}',
+          //   style: TextStyle(fontSize: 16.0),
+          // ),
+          // SizedBox(height: 16.0),
+          Expanded(
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: gastosDelDia.length,
+              itemBuilder: (context, index) {
+                Gasto gasto = gastosDelDia[index];
+            
+                Categoria? categoriaDelGasto = categorias
+                    .firstWhere((categoria) => categoria.id == gasto.categoriaId);
+            
+                String nombreCategoria =
+                    categoriaDelGasto?.nombre ?? 'Sin categoría';
+            
+                Vehiculo? vehiculo =
+                    vehiculos.firstWhere((v) => v.id == gasto.vehiculoId);
+                String modeloVehiculo = vehiculo?.modelo ?? 'Desconocido';
+            
+                return ListTile(
+                  title: Text(
+                    '$nombreCategoria \$${gasto.monto}',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  subtitle: Text(
+                    'Vehiculo: ${gasto.vehiculoId != null ? '$modeloVehiculo' : 'Sin vehículo'} \nFecha: ${DateFormat("dd-MM-yyyy").format(gasto.fecha)} \nDescripción: ${gasto.descripcion}',
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      );
+  }
+
+// Función para verificar si dos fechas son del mismo día
+  bool _esMismoDia(DateTime fecha1, DateTime fecha2) {
+    return fecha1.year == fecha2.year &&
+        fecha1.month == fecha2.month &&
+        fecha1.day == fecha2.day;
+  }
+
   List<Gasto> _filtrarGastos(List<Gasto> gastos) {
-    // Filtro de fechas: Gastos entre fechaInicio y fechaFin
+    // Filtro de fechas: Gastos entre fechaInicio y fechaFin, inclusive
     return gastos
         .where(
-          (g) => g.fecha.isAfter(fechaInicio) && g.fecha.isBefore(fechaFin),
+          (g) =>
+              g.fecha.isAfter(fechaInicio.subtract(Duration(days: 1))) &&
+              g.fecha.isBefore(fechaFin.add(Duration(days: 1))),
         )
         .toList();
   }

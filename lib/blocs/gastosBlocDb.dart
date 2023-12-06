@@ -206,6 +206,27 @@ Future<List<Gasto>> getAllGastosFromDb() async {
     }
   }
 
+  Future<List<Gasto>> obtenerGastosPorVehiculo(int vehiculoId) async {
+    final db = await DatabaseHelper().database;
+    final List<Map<String, dynamic>> maps = await db!.query(
+      'gastos',
+      where: 'vehiculoId = ?',
+      whereArgs: [vehiculoId],
+    );
+
+    return List.generate(maps.length, (i) {
+      return Gasto(
+        id: maps[i]['ID'],
+        tipoGasto: maps[i]['tipoGasto'],
+        monto: maps[i]['monto'],
+        fecha: DateTime.parse(maps[i]['fecha']),
+        descripcion: maps[i]['descripcion'],
+        vehiculoId: maps[i]['vehiculoId'],
+        categoriaId: maps[i]['categoriaId'],
+      );
+    });
+  }
+
   Future<List<Gasto>> updateGasto(Gasto? gasto) async {
     final Database? db = await DatabaseHelper().database;
     print("entro al update");
