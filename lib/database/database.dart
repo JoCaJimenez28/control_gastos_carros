@@ -20,7 +20,7 @@ class DatabaseHelper {
 
     try {
       rutaBaseDatos =
-          await fabricaBaseDatos.getDatabasesPath() + "/databaseConCats.db";
+          await fabricaBaseDatos.getDatabasesPath() + "/databaseConVals3.db";
       return dbGestor = await fabricaBaseDatos.openDatabase(
         rutaBaseDatos,
         options: OpenDatabaseOptions(
@@ -33,8 +33,7 @@ class DatabaseHelper {
             await db.execute('CREATE TABLE categorias ('
                 'ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, '
                 'nombre TEXT(35)'
-                ');'
-              );
+                ');');
 
             await db.execute('CREATE TABLE gastos ('
                 'ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, '
@@ -44,10 +43,11 @@ class DatabaseHelper {
                 'descripcion TEXT(80), '
                 'vehiculoId INTEGER, '
                 'categoriaId INTEGER, '
-                'FOREIGN KEY (vehiculoId) REFERENCES vehiculos(ID), '
+                'CONSTRAINT  fk_vehiculos '
+                'FOREIGN KEY (vehiculoId) REFERENCES vehiculos(ID) ON DELETE CASCADE, '
+                'CONSTRAINT  fk_categorias '
                 'FOREIGN KEY (categoriaId) REFERENCES categorias(ID)'
-                ');'
-              );
+                ');');
           },
         ),
       );

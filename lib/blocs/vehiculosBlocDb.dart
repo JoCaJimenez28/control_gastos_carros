@@ -1,4 +1,6 @@
 import 'package:bloc/bloc.dart';
+import 'package:control_gastos_carros/blocs/gastosBlocDb.dart';
+import 'package:control_gastos_carros/modelos/gastos.dart';
 import 'package:flutter/material.dart';
 import 'package:mockito/mockito.dart';
 import 'package:control_gastos_carros/database/database.dart';
@@ -27,8 +29,9 @@ class UpdateVehiculo extends VehiculoEvento {
 
 class DeleteVehiculo extends VehiculoEvento {
   final Vehiculo vehiculo;
+  final BuildContext context;
 
-  DeleteVehiculo({required this.vehiculo});
+  DeleteVehiculo({required this.vehiculo, required this.context});
 }
 
 class ObtenerVehiculos extends VehiculoEvento {
@@ -40,11 +43,12 @@ class ObtenerVehiculos extends VehiculoEvento {
 //Estados
 class VehiculoEstado with EquatableMixin {
   final List<Vehiculo> vehiculos;
+  String message = "";
   String error = "";
 
   VehiculoEstado._() : vehiculos = [];
 
-  VehiculoEstado({required this.vehiculos, this.error=""});
+  VehiculoEstado({required this.vehiculos, this.error="", this.message=""});
 
   @override
   List<Object?> get props => [vehiculos];
@@ -54,9 +58,10 @@ class MockVehiculosBlocDb extends Mock implements VehiculosBlocDb {}
 
 //Bloc
 class VehiculosBlocDb extends Bloc<VehiculoEvento, VehiculoEstado> {
+  final BuildContext context;
   List<Vehiculo> _vehiculos = [];
 
-  VehiculosBlocDb() : super(VehiculoEstado._()) {
+  VehiculosBlocDb(this.context) : super(VehiculoEstado._()) {
     on<VehiculosInicializado>((event, emit) async {
       await DatabaseHelper().iniciarDatabase();
       _vehiculos = await getAllVehiculosFromDb();
@@ -71,38 +76,73 @@ class VehiculosBlocDb extends Bloc<VehiculoEvento, VehiculoEstado> {
     try {
       await DatabaseHelper().iniciarDatabase();
       _vehiculos = await insertVehiculo(event.vehiculo);
-      emit(VehiculoEstado(vehiculos: _vehiculos));
+      emit(VehiculoEstado(vehiculos: _vehiculos, error: "", message: "agregado con exito"));
     } catch (e) {
-      emitErrorSnackBar(emit, 'Error al agregar vehículo: $e');
+      emit(VehiculoEstado(vehiculos: [], error: "Ocurrió un error al agregar el vehiculo", message: ""));
     }
   }
 
   void _updateVehiculo(UpdateVehiculo event, Emitter<VehiculoEstado> emit) async {
     try {
-      Vehiculo? editvehiculo = await getVehiculoByPlaca(event.vehiculo.placa);
+      Vehiculo? editvehiculo = await getVehiculoById(event.vehiculo.id!);
       print("editVehiculo: $editvehiculo");
 
       if (editvehiculo != null) {
         _vehiculos = await updateVehiculo(event.vehiculo);
-        emit(VehiculoEstado(vehiculos: _vehiculos));
+        emit(VehiculoEstado(vehiculos: _vehiculos, message: 'Vehiculo actualizado!', error: ""));
         print('Vehículo actualizado con éxito!');
       } else {
-        emitErrorSnackBar(emit, 'Vehículo no encontrado para actualizar.');
+        throw ErrorHint('hubo un problema al actualizar el vehiculo');
       }
     } catch (e) {
-      emitErrorSnackBar(emit, 'Error al actualizar el vehículo: $e');
+      throw ErrorHint('hubo un problema al actualizar el vehiculo');
+
     }
   }
 
   void _deleteVehiculo(DeleteVehiculo event, Emitter<VehiculoEstado> emit) async {
+  try {
+    // 1. Eliminar los gastos asociados al vehículo
+     _eliminarGastosDelVehiculo(event.vehiculo, context);
+
+    // 2. Eliminar el vehículo
+    List<Vehiculo> updatedList = await deleteVehiculo(event.vehiculo);
+    emit(VehiculoEstado(vehiculos: updatedList, message: 'Vehículo eliminado con éxito!', error: ""));
+  } catch (e) {
+    emit(VehiculoEstado(vehiculos: [], error: 'Hubo un problema al eliminar el vehículo', message: ""));
+  }
+}
+
+void _eliminarGastosDelVehiculo(Vehiculo vehiculo, BuildContext context) async {
+  // Obtener el Bloc de Gastos usando context.read
+  // final gastosBloc = await this.context.read<GastosBloc>();
+
+  // Obtener la lista de gastos relacionados con el vehículo
+  List<Gasto> gastosDelVehiculo = await obtenerGastosPorVehiculo(vehiculo.id!);
+
+  // Eliminar cada gasto de la lista
+  for (var gasto in gastosDelVehiculo) {
     try {
-      List<Vehiculo> updatedList = await deleteVehiculo(event.vehiculo);
-      emit(VehiculoEstado(vehiculos: updatedList));
-      print('Vehículo eliminado con éxito!');
+      context.read<GastosBloc>().add(DeleteGasto(gasto: gasto));
     } catch (e) {
-      emitErrorSnackBar(emit, 'Error al eliminar el vehículo: $e');
+      // Manejar el error si es necesario
+      print('Error al eliminar el gasto: $e');
     }
   }
+}
+
+  // void _deleteVehiculo(DeleteVehiculo event, Emitter<VehiculoEstado> emit) async {
+  //   try {
+  //     List<Vehiculo> updatedList = await deleteVehiculo(event.vehiculo);
+  //     emit(VehiculoEstado(vehiculos: updatedList));
+  //     print('Vehículo eliminado con éxito!');
+
+
+      
+  //   } catch (e) {
+  //     throw ErrorHint('hubo un problema al eliminar el vehiculo');
+  //   }
+  // }
 
   void _getVehiculos(ObtenerVehiculos event, Emitter<VehiculoEstado> emit) async {
     try {

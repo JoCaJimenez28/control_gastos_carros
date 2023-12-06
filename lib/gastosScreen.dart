@@ -35,15 +35,55 @@ class _GastosScreenState extends State<GastosScreen> {
     var estadoVehiculos = context.watch<VehiculosBlocDb>().state;
     var estadoCategorias = context.watch<CategoriasBloc>().state;
 
+    print('BlocBuilder reconstruido. Nuevo estadoGastos: $estadoGastos');
+
+    List<Categoria> categoriasOrdenadas = List.from(estadoCategorias.categorias);
+    categoriasOrdenadas.sort((a, b) => a.nombre.compareTo(b.nombre));
+
+    List<Vehiculo> vehiculosOrdenados = List.from(estadoVehiculos.vehiculos);
+    vehiculosOrdenados.sort((a, b) => a.modelo.compareTo(b.modelo));
+//     List<Gasto> gastosOrdenados = List.from(estadoGastos.gastos);
+// gastosOrdenados.removeWhere((gasto) => gasto.vehiculoId == null);
+// gastosOrdenados.sort((a, b) => a.nombre.compareTo(b.nombre));
     double totalMonto;
-    if (selectedVehiculoId == 0) {
+    if (selectedVehiculoId == 0 && selectedCategoriaId == 0) {
       totalMonto =
           estadoGastos.gastos.fold(0.0, (sum, gasto) => sum + gasto.monto);
-    } else {
+    } else if (selectedVehiculoId != 0 && selectedCategoriaId == 0) {
       totalMonto = estadoGastos.gastos
           .where((gasto) => gasto.vehiculoId == selectedVehiculoId)
           .fold(0.0, (sum, gasto) => sum + gasto.monto);
+    } else if (selectedVehiculoId == 0 && selectedCategoriaId != 0) {
+      totalMonto = estadoGastos.gastos
+          .where((gasto) => gasto.categoriaId == selectedCategoriaId)
+          .fold(0.0, (sum, gasto) => sum + gasto.monto);
+    } else {
+      totalMonto = estadoGastos.gastos
+          .where((gasto) =>
+              gasto.vehiculoId == selectedVehiculoId &&
+              gasto.categoriaId == selectedCategoriaId)
+          .fold(0.0, (sum, gasto) => sum + gasto.monto);
     }
+
+    // double totalMonto;
+    // if (selectedVehiculoId == 0 && selectedCategoriaId == 0) {
+    //   totalMonto =
+    //       estadoGastos.gastos.fold(0.0, (sum, gasto) => sum + gasto.monto);
+    // } else if (selectedVehiculoId != 0 && selectedCategoriaId == 0) {
+    //   totalMonto = estadoGastos.gastos
+    //       .where((gasto) => gasto.vehiculoId == selectedVehiculoId)
+    //       .fold(0.0, (sum, gasto) => sum + gasto.monto);
+    // } else if (selectedVehiculoId == 0 && selectedCategoriaId != 0) {
+    //   totalMonto = estadoGastos.gastos
+    //       .where((gasto) => gasto.categoriaId == selectedCategoriaId)
+    //       .fold(0.0, (sum, gasto) => sum + gasto.monto);
+    // } else {
+    //   totalMonto = estadoGastos.gastos
+    //       .where((gasto) =>
+    //           gasto.vehiculoId == selectedVehiculoId &&
+    //           gasto.categoriaId == selectedCategoriaId)
+    //       .fold(0.0, (sum, gasto) => sum + gasto.monto);
+    // }
 
     return Scaffold(
       appBar: AppBar(
@@ -56,7 +96,7 @@ class _GastosScreenState extends State<GastosScreen> {
               // Manejar la opción seleccionada
               if (value == 'ver_categorias') {
                 _mostrarDialogoVerCategorias(
-                    context, estadoCategorias.categorias);
+                    context, categoriasOrdenadas);
               }
             },
             itemBuilder: (BuildContext context) {
@@ -141,7 +181,7 @@ class _GastosScreenState extends State<GastosScreen> {
                               value: 0,
                               child: Text('Todos'),
                             ),
-                            for (var categoria in estadoCategorias.categorias)
+                            for (var categoria in categoriasOrdenadas)
                               DropdownMenuItem<int>(
                                 value: categoria.id,
                                 child: Text(categoria.nombre),
@@ -187,7 +227,7 @@ class _GastosScreenState extends State<GastosScreen> {
                               value: 0,
                               child: Text('Todos'),
                             ),
-                            for (var vehiculo in estadoVehiculos.vehiculos)
+                            for (var vehiculo in vehiculosOrdenados)
                               DropdownMenuItem<int>(
                                 value: vehiculo.id,
                                 child: Text(vehiculo.modelo),
@@ -203,7 +243,6 @@ class _GastosScreenState extends State<GastosScreen> {
           ),
 
           // Lista de Gastos
-          // Lista de Gastos
           Expanded(
             child: Container(
               margin: EdgeInsets.all(8.0),
@@ -214,7 +253,7 @@ class _GastosScreenState extends State<GastosScreen> {
               ),
               child: estadoGastos.gastos.isEmpty
                   ? Center(
-                      child: Text('No hay gastos'),
+                      child: Text('Agrega un gasto!'),
                     )
                   : ListView.builder(
                       itemCount: filtrarGastos(estadoGastos.gastos,
@@ -224,6 +263,8 @@ class _GastosScreenState extends State<GastosScreen> {
                         var gastosFiltrados = filtrarGastos(estadoGastos.gastos,
                             selectedCategoriaId, selectedVehiculoId);
                         var gasto = gastosFiltrados[index];
+                        print('gastosFiltrados: $gastosFiltrados');
+                        // totalMonto = totalMonto + gastosFiltrados[index].monto;
 
                         // Buscar la categoría correspondiente al gasto
                         Categoria? categoriaDelGasto = estadoCategorias
@@ -231,12 +272,18 @@ class _GastosScreenState extends State<GastosScreen> {
                             .firstWhereOrNull((categoria) =>
                                 categoria.id == gasto.categoriaId);
 
+                        // Buscar el vehículo correspondiente al gasto
+                        Vehiculo? vehiculoDelGasto = estadoVehiculos.vehiculos
+                            .firstWhereOrNull(
+                                (vehiculo) => vehiculo.id == gasto.vehiculoId);
+
                         return ListTile(
                           title: Text(
-                            '${categoriaDelGasto?.nombre ?? 'Sin categoría'} - ${gasto.monto}',
+                            '${categoriaDelGasto?.nombre ?? 'Sin categoría'} \$${gasto.monto}',
+                            style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
                           subtitle: Text(
-                            'Descripcion: ${gasto.descripcion} - Fecha: ${gasto.fecha}',
+                            'Vehiculo: ${vehiculoDelGasto?.modelo} \nFecha: ${DateFormat("dd-MM-yyyy").format(gasto.fecha)} \nDescripcion: ${gasto.descripcion}',
                           ),
                           trailing: Row(
                             mainAxisSize: MainAxisSize.min,
@@ -257,11 +304,10 @@ class _GastosScreenState extends State<GastosScreen> {
                                 icon: Icon(Icons.delete),
                                 color: Colors.red,
                                 onPressed: () {
-                                  context.read<GastosBloc>().add(
-                                        DeleteGasto(
-                                          gasto: gasto,
-                                        ),
-                                      );
+                                  _mostrarDialogoEliminarGasto(
+                                    context,
+                                    estadoGastos.gastos[index],
+                                  );
                                 },
                               ),
                             ],
@@ -282,8 +328,9 @@ class _GastosScreenState extends State<GastosScreen> {
               // Acciones para el botón "+Categoria"
               _mostrarDialogoAgregarCategoria(context);
             },
-            child: Icon(Icons.category,
-            color: Colors.white,
+            child: Icon(
+              Icons.category,
+              color: Colors.white,
             ),
           ),
           SizedBox(width: 16.0), // Espacio entre los dos botones
@@ -315,168 +362,216 @@ class _GastosScreenState extends State<GastosScreen> {
 
   void _mostrarDialogoAgregarGasto(BuildContext context,
       List<Vehiculo> vehiculos, List<Categoria> categorias) {
-    // TextEditingController idController = TextEditingController();
+    final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
     TextEditingController tipoController = TextEditingController();
     TextEditingController montoController = TextEditingController();
     TextEditingController fechaController =
         TextEditingController(text: DateTime.now().toString());
     TextEditingController descripcionController = TextEditingController();
-    TextEditingController categoriaController = TextEditingController();
-    TextEditingController vehiculoController = TextEditingController();
 
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return Dialog(
-          child: SingleChildScrollView(
-            child: Container(
-              padding: EdgeInsets.all(24),
-              child: Column(
-                children: [
-                  // TextField(
-                  //   decoration: InputDecoration(labelText: 'ID'),
-                  //   controller: idController,
-                  // ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Agregar Gasto',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF002A52),
-                        ),
-                      ),
-                      IconButton(
-                        icon: Icon(Icons.close),
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
-                      ),
-                    ],
-                  ),
-                  TextField(
-                    decoration: InputDecoration(labelText: 'Tipo'),
-                    controller: tipoController,
-                  ),
-                  TextField(
-                    decoration: InputDecoration(labelText: 'Monto'),
-                    controller: montoController,
-                  ),
-                  DateTimeField(
-                    decoration: InputDecoration(labelText: 'Fecha'),
-                    format: DateFormat("yyyy-MM-dd"),
-                    initialValue: DateTime.now(),
-                    onChanged: (date) {
-                      setState(() {
-                        var selectedDate = date!;
-                        fechaController.text = formatDate(selectedDate);
-                      });
-                    },
-                    onShowPicker: (context, currentValue) async {
-                      final date = await showDatePicker(
-                        context: context,
-                        firstDate: DateTime.utc(DateTime.now().year),
-                        lastDate: DateTime.now(),
-                        initialDate: currentValue ?? DateTime.now(),
-                      );
-
-                      if (date != null) {
-                        currentValue = DateTime.now();
-                      }
-
-                      return date;
-                    },
-                  ),
-                  DropdownButtonFormField<Categoria>(
-                    decoration: InputDecoration(labelText: 'Categoria'),
-                    value: selectedCategoria,
-                    items: categorias.map((Categoria categoria) {
-                      return DropdownMenuItem<Categoria>(
-                        value: categoria,
-                        child: Text('${categoria.nombre}'),
-                      );
-                    }).toList(),
-                    onChanged: (Categoria? nuevaCategoria) {
-                      setState(() {
-                        selectedCategoria = nuevaCategoria;
-                      });
-                    },
-                    disabledHint: Text(selectedCategoria != null
-                        ? '${selectedCategoria!.nombre} '
-                        : 'Seleccione una categoria'),
-                  ),
-                  DropdownButtonFormField<Vehiculo>(
-                    decoration: InputDecoration(labelText: 'Vehículo'),
-                    value: selectedVehiculo,
-                    items: vehiculos.map((Vehiculo vehiculo) {
-                      return DropdownMenuItem<Vehiculo>(
-                        value: vehiculo,
-                        child: Text('${vehiculo.marca} - ${vehiculo.modelo}'),
-                      );
-                    }).toList(),
-                    onChanged: (Vehiculo? nuevoVehiculo) {
-                      setState(() {
-                        selectedVehiculo = nuevoVehiculo;
-                      });
-                    },
-                    disabledHint: Text(selectedVehiculo != null
-                        ? '${selectedVehiculo!.marca} - ${selectedVehiculo!.modelo}'
-                        : 'Seleccione un vehículo'),
-                  ),
-                  TextField(
-                    decoration: InputDecoration(labelText: 'Descripción'),
-                    controller: descripcionController,
-                  ),
-                  SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      ElevatedButton(
-                        onPressed: () {
-                          context.read<GastosBloc>().add(
-                                AddGasto(
-                                  gasto: Gasto(
-                                    // id: int.parse(idController.text),
-                                    tipoGasto: tipoController.text,
-                                    monto: double.parse(montoController.text),
-                                    fecha: DateTime.parse(fechaController.text),
-                                    descripcion: descripcionController.text,
-                                    categoriaId: selectedCategoria?.id ?? 0,
-                                    vehiculoId: selectedVehiculo?.id ?? 0,
-                                  ),
-                                  context: context,
-                                ),
-                              );
-
-                          Navigator.of(context).pop();
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Color(0xFF002A52), 
-                        ),
-                        child: Text(
-                          'Guardar',
-                          style: TextStyle(color: Colors.white),
-                        ),
-                      ),
-                      ElevatedButton(
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
-                        child: Text(
-                          'Cancelar',
+          child: Form(
+            key: _formKey,
+            child: SingleChildScrollView(
+              child: Container(
+                padding: EdgeInsets.all(24),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Agregar Gasto',
                           style: TextStyle(
-                            color: Colors.white,
+                            fontSize: 20,
                             fontWeight: FontWeight.bold,
+                            color: Color(0xFF002A52),
                           ),
                         ),
-                        style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red),
-                      ),
-                    ],
-                  ),
-                ],
+                        IconButton(
+                          icon: Icon(Icons.close),
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                        ),
+                      ],
+                    ),
+                    // TextFormField(
+                    //   decoration: InputDecoration(labelText: 'Tipo'),
+                    //   controller: tipoController,
+                    //   validator: (value) {
+                    //     if (value == null || value.isEmpty) {
+                    //       return 'Este campo no puede estar vacío';
+                    //     }
+                    //     return null;
+                    //   },
+                    // ),
+                    TextFormField(
+                      decoration: InputDecoration(labelText: 'Monto'),
+                      controller: montoController,
+                      keyboardType: TextInputType.number,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Este campo no puede estar vacío';
+                        }
+
+                        RegExp numerosConDecimales = RegExp(r'^\d*\.?\d*$');
+                        RegExp contieneLetras = RegExp(r'[a-zA-Z]');
+
+                        if (contieneLetras.hasMatch(value)) {
+                          return 'Solo se permiten números';
+                        }
+
+                        if (!numerosConDecimales.hasMatch(value)) {
+                          return 'Ingrese un número válido';
+                        }
+                        return null;
+                      },
+                    ),
+                    DateTimeField(
+                      decoration: InputDecoration(labelText: 'Fecha'),
+                      format: DateFormat("yyyy-MM-dd"),
+                      initialValue: DateTime.now(),
+                      onChanged: (date) {
+                        setState(() {
+                          var selectedDate = date!;
+                          fechaController.text = formatDate(selectedDate);
+                        });
+                      },
+                      onShowPicker: (context, currentValue) async {
+                        final date = await showDatePicker(
+                          context: context,
+                          firstDate: DateTime.utc(DateTime.now().year),
+                          lastDate: DateTime.now(),
+                          initialDate: currentValue ?? DateTime.now(),
+                        );
+
+                        if (date != null) {
+                          currentValue = DateTime.now();
+                        }
+
+                        return date;
+                      },
+                    ),
+                    DropdownButtonFormField<Categoria>(
+                      decoration: InputDecoration(labelText: 'Categoria'),
+                      value: selectedCategoria,
+                      items: categorias.map((Categoria categoria) {
+                        return DropdownMenuItem<Categoria>(
+                          value: categoria,
+                          child: Text('${categoria.nombre}'),
+                        );
+                      }).toList(),
+                      onChanged: (Categoria? nuevaCategoria) {
+                        setState(() {
+                          selectedCategoria = nuevaCategoria;
+                        });
+                      },
+                      disabledHint: Text(selectedCategoria != null
+                          ? '${selectedCategoria!.nombre} '
+                          : 'Seleccione una categoria'),
+                    ),
+                    DropdownButtonFormField<Vehiculo>(
+                      decoration: InputDecoration(labelText: 'Vehículo'),
+                      value: selectedVehiculo,
+                      items: vehiculos.map((Vehiculo vehiculo) {
+                        return DropdownMenuItem<Vehiculo>(
+                          value: vehiculo,
+                          child: Text('${vehiculo.marca} - ${vehiculo.modelo}'),
+                        );
+                      }).toList(),
+                      onChanged: (Vehiculo? nuevoVehiculo) {
+                        setState(() {
+                          selectedVehiculo = nuevoVehiculo;
+                        });
+                      },
+                      disabledHint: Text(selectedVehiculo != null
+                          ? '${selectedVehiculo!.marca} - ${selectedVehiculo!.modelo}'
+                          : 'Seleccione un vehículo'),
+                    ),
+                    TextFormField(
+                      decoration: InputDecoration(labelText: 'Descripción'),
+                      controller: descripcionController,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Este campo no puede estar vacío';
+                        }
+                        return null;
+                      },
+                    ),
+                    SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        ElevatedButton(
+                          onPressed: () {
+                            if (_formKey.currentState!.validate() &&
+                                selectedCategoria != null &&
+                                selectedVehiculo != null) {
+                              context.read<GastosBloc>().add(
+                                    AddGasto(
+                                      gasto: Gasto(
+                                        tipoGasto: tipoController.text,
+                                        monto:
+                                            double.parse(montoController.text),
+                                        fecha: DateTime.parse(
+                                            fechaController.text),
+                                        descripcion: descripcionController.text,
+                                        categoriaId: selectedCategoria!.id!,
+                                        vehiculoId: selectedVehiculo!.id!,
+                                      ),
+                                      context: context,
+                                    ),
+                                  );
+                              ScaffoldMessenger.of(context)
+                                  .showSnackBar(SnackBar(
+                                content: Text(
+                                  "Gasto agregado!",
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                                backgroundColor: Colors.green,
+                              ));
+                              Navigator.of(context).pop();
+                            } else {
+                              ScaffoldMessenger.of(context)
+                                  .showSnackBar(SnackBar(
+                                content: Text(
+                                  "Por favor, complete todos los campos y seleccione una categoría y un vehículo.",
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                                backgroundColor: Colors.red,
+                              ));
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Color(0xFF002A52),
+                          ),
+                          child: Text(
+                            'Guardar',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ),
+                        ElevatedButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                          child: Text(
+                            'Cancelar',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -485,8 +580,13 @@ class _GastosScreenState extends State<GastosScreen> {
     );
   }
 
-  void _mostrarDialogoEditarGasto(BuildContext context, Gasto gasto,
-      List<Vehiculo> vehiculos, List<Categoria> categorias) {
+  void _mostrarDialogoEditarGasto(
+    BuildContext context,
+    Gasto gasto,
+    List<Vehiculo> vehiculos,
+    List<Categoria> categorias,
+  ) {
+    final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
     TextEditingController tipoController =
         TextEditingController(text: gasto.tipoGasto);
     TextEditingController montoController =
@@ -508,133 +608,182 @@ class _GastosScreenState extends State<GastosScreen> {
       context: context,
       builder: (BuildContext context) {
         return Dialog(
-          child: SingleChildScrollView(
-            child: Container(
-              padding: EdgeInsets.all(24),
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Editar Gasto',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF002A52),
-                        ),
-                      ),
-                      IconButton(
-                        icon: Icon(Icons.close),
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 16),
-                  TextField(
-                    decoration: InputDecoration(labelText: 'Tipo'),
-                    controller: tipoController,
-                  ),
-                  TextField(
-                    decoration: InputDecoration(labelText: 'Monto'),
-                    controller: montoController,
-                  ),
-                  DateTimeField(
-                    decoration: InputDecoration(labelText: 'Fecha'),
-                    format: DateFormat("yyyy-MM-dd"),
-                    initialValue: DateTime.now(),
-                    onChanged: (date) {
-                      setState(() {
-                        var selectedDate = date!;
-                        fechaController.text = formatDate(selectedDate);
-                      });
-                    },
-                    onSaved: (date) {
-                      // Handle when the form is saved
-                    },
-                    onShowPicker: (context, currentValue) async {
-                      final date = await showDatePicker(
-                        context: context,
-                        firstDate: DateTime(2000),
-                        lastDate: DateTime(2101),
-                        initialDate: currentValue ?? DateTime.now(),
-                      );
-
-                      if (date != null) {
-                        currentValue = DateTime.now();
-                      }
-
-                      return date;
-                    },
-                  ),
-                  DropdownButtonFormField<Vehiculo>(
-                    decoration: InputDecoration(labelText: 'Vehículo'),
-                    value: vehiculoSeleccionado,
-                    items: vehiculos.map((Vehiculo vehiculo) {
-                      return DropdownMenuItem<Vehiculo>(
-                        value: vehiculo,
-                        child: Text('${vehiculo.marca} - ${vehiculo.modelo}'),
-                      );
-                    }).toList(),
-                    onChanged: (Vehiculo? newValue) {
-                      setState(() {
-                        vehiculoController.text =
-                            '${newValue?.marca ?? ''} - ${newValue?.id ?? 0}';
-                      });
-                    },
-                  ),
-                  TextField(
-                    decoration: InputDecoration(labelText: 'Descripción'),
-                    controller: descripcionController,
-                  ),
-                  SizedBox(height: 16),
-                  Row(
-                    children: [
-                      ElevatedButton(
-                        onPressed: () {
-                          context.read<GastosBloc>().add(
-                                UpdateGasto(
-                                  gasto: Gasto(
-                                    id: gasto.id,
-                                    tipoGasto: tipoController.text,
-                                    monto: double.parse(montoController.text),
-                                    fecha: DateTime.parse(fechaController.text),
-                                    descripcion: descripcionController.text,
-                                    categoriaId: categoriaSeleccionada?.id ?? 0,
-                                    vehiculoId: vehiculoSeleccionado?.id ?? 0,
-                                  ),
-                                ),
-                              );
-
-                          Navigator.of(context).pop();
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Color(0xFF002A52), 
-                        ),
-                        child: Text(
-                          'Guardar',
-                          style: TextStyle(color: Colors.white),
-                        ),
-                      ),
-                      ElevatedButton(
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
-                        child: Text(
-                          'Cancelar',
+          child: Form(
+            key: _formKey,
+            child: SingleChildScrollView(
+              child: Container(
+                padding: EdgeInsets.all(24),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Editar Gasto',
                           style: TextStyle(
-                            color: Colors.white,
+                            fontSize: 20,
                             fontWeight: FontWeight.bold,
+                            color: Color(0xFF002A52),
                           ),
                         ),
-                        style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red),
-                      ),
-                    ],
-                  ),
-                ],
+                        IconButton(
+                          icon: Icon(Icons.close),
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 16),
+                    // TextFormField(
+                    //   decoration: InputDecoration(labelText: 'Tipo'),
+                    //   controller: tipoController,
+                    //   validator: (value) {
+                    //     if (value == null || value.isEmpty) {
+                    //       return 'Este campo no puede estar vacío';
+                    //     }
+                    //     return null;
+                    //   },
+                    // ),
+                    TextFormField(
+                      decoration: InputDecoration(labelText: 'Monto'),
+                      controller: montoController,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Este campo no puede estar vacío';
+                        }
+                        return null;
+                      },
+                    ),
+                    DateTimeField(
+                      decoration: InputDecoration(labelText: 'Fecha'),
+                      format: DateFormat("yyyy-MM-dd"),
+                      initialValue: DateTime.now(),
+                      onChanged: (date) {
+                        setState(() {
+                          var selectedDate = date!;
+                          fechaController.text = formatDate(selectedDate);
+                        });
+                      },
+                      onShowPicker: (context, currentValue) async {
+                        final date = await showDatePicker(
+                          context: context,
+                          firstDate: DateTime(2000),
+                          lastDate: DateTime(2101),
+                          initialDate: currentValue ?? DateTime.now(),
+                        );
+
+                        if (date != null) {
+                          currentValue = DateTime.now();
+                        }
+
+                        return date;
+                      },
+                    ),
+                    DropdownButtonFormField<Categoria>(
+                      decoration: InputDecoration(labelText: 'Categoria'),
+                      value: selectedCategoria,
+                      items: categorias.map((Categoria categoria) {
+                        return DropdownMenuItem<Categoria>(
+                          value: categoria,
+                          child: Text('${categoria.nombre}'),
+                        );
+                      }).toList(),
+                      onChanged: (Categoria? nuevaCategoria) {
+                        setState(() {
+                          selectedCategoria = nuevaCategoria;
+                        });
+                      },
+                      disabledHint: Text(selectedCategoria != null
+                          ? '${selectedCategoria!.nombre} '
+                          : 'Seleccione una categoria'),
+                    ),
+                    DropdownButtonFormField<Vehiculo>(
+                      decoration: InputDecoration(labelText: 'Vehículo'),
+                      value: vehiculoSeleccionado,
+                      items: vehiculos.map((Vehiculo vehiculo) {
+                        return DropdownMenuItem<Vehiculo>(
+                          value: vehiculo,
+                          child: Text('${vehiculo.marca} - ${vehiculo.modelo}'),
+                        );
+                      }).toList(),
+                      onChanged: (Vehiculo? newValue) {
+                        setState(() {
+                          vehiculoController.text =
+                              '${newValue?.marca ?? ''} - ${newValue?.id ?? 0}';
+                        });
+                      },
+                    ),
+                    TextFormField(
+                      decoration: InputDecoration(labelText: 'Descripción'),
+                      controller: descripcionController,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Este campo no puede estar vacío';
+                        }
+                        return null;
+                      },
+                    ),
+                    SizedBox(height: 16),
+                    Row(
+                      children: [
+                        ElevatedButton(
+                          onPressed: () {
+                            if (_formKey.currentState!.validate()) {
+                              context.read<GastosBloc>().add(
+                                    UpdateGasto(
+                                      gasto: Gasto(
+                                        id: gasto.id,
+                                        tipoGasto: tipoController.text,
+                                        monto:
+                                            double.parse(montoController.text),
+                                        fecha: DateTime.parse(
+                                            fechaController.text),
+                                        descripcion: descripcionController.text,
+                                        categoriaId:
+                                            categoriaSeleccionada?.id ?? 0,
+                                        vehiculoId:
+                                            vehiculoSeleccionado?.id ?? 0,
+                                      ),
+                                    ),
+                                  );
+                              ScaffoldMessenger.of(context)
+                                  .showSnackBar(SnackBar(
+                                content: Text(
+                                  "Gasto editado!",
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                                backgroundColor: Colors.green,
+                              ));
+                              Navigator.of(context).pop();
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Color(0xFF002A52),
+                          ),
+                          child: Text(
+                            'Guardar',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ),
+                        ElevatedButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                          child: Text(
+                            'Cancelar',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -644,84 +793,111 @@ class _GastosScreenState extends State<GastosScreen> {
   }
 
   void _mostrarDialogoAgregarCategoria(BuildContext context) {
+    final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
     TextEditingController nombreCategoriaController = TextEditingController();
 
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return Dialog(
-          child: SingleChildScrollView(
-            child: Container(
-              padding: EdgeInsets.all(24),
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Agregar Categoría',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF002A52),
-                        ),
-                      ),
-                      IconButton(
-                        icon: Icon(Icons.close),
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 16),
-                  TextField(
-                    decoration:
-                        InputDecoration(labelText: 'Nombre de la Categoría'),
-                    controller: nombreCategoriaController,
-                  ),
-                  SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      ElevatedButton(
-                        onPressed: () {
-                          context.read<CategoriasBloc>().add(
-                                AddCategoria(
-                                  categoria: Categoria(
-                                      nombre: nombreCategoriaController.text),
-                                ),
-                              );
-                          print(
-                              'Categoría agregada: ${nombreCategoriaController.text}');
-
-                          Navigator.of(context).pop();
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Color(0xFF002A52), 
-                        ),
-                        child: Text(
-                          'Guardar',
-                          style: TextStyle(color: Colors.white),
-                        ),
-                      ),
-                      ElevatedButton(
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
-                        child: Text(
-                          'Cancelar',
+          child: Form(
+            key: _formKey,
+            child: SingleChildScrollView(
+              child: Container(
+                padding: EdgeInsets.all(24),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Agregar Categoría',
                           style: TextStyle(
-                            color: Colors.white,
+                            fontSize: 20,
                             fontWeight: FontWeight.bold,
+                            color: Color(0xFF002A52),
                           ),
                         ),
-                        style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red),
-                      ),
-                    ],
-                  ),
-                ],
+                        IconButton(
+                          icon: Icon(Icons.close),
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 16),
+                    TextFormField(
+                      decoration:
+                          InputDecoration(labelText: 'Nombre de la Categoría'),
+                      controller: nombreCategoriaController,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Este campo no puede estar vacío';
+                        }
+
+                        final RegExp caracteresEspeciales =
+                            RegExp(r'[!@#%^&*(),.?":{}|<>0-9]');
+                        if (caracteresEspeciales.hasMatch(value)) {
+                          return 'No se permiten caracteres especiales ni números';
+                        }
+                        return null;
+                      },
+                    ),
+                    SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        ElevatedButton(
+                          onPressed: () {
+                            if (_formKey.currentState!.validate()) {
+                              context.read<CategoriasBloc>().add(
+                                    AddCategoria(
+                                      categoria: Categoria(
+                                          nombre:
+                                              nombreCategoriaController.text),
+                                    ),
+                                  );
+                              print(
+                                  'Categoría agregada: ${nombreCategoriaController.text}');
+
+                              ScaffoldMessenger.of(context)
+                                  .showSnackBar(SnackBar(
+                                content: Text(
+                                  "Categoría agregada!",
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                                backgroundColor: Colors.green,
+                              ));
+                              Navigator.of(context).pop();
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Color(0xFF002A52),
+                          ),
+                          child: Text(
+                            'Guardar',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ),
+                        ElevatedButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                          child: Text(
+                            'Cancelar',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -747,10 +923,9 @@ class _GastosScreenState extends State<GastosScreen> {
                     child: Text(
                       'Categorias',
                       style: TextStyle(
-                        fontSize: 18.0,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF002A52)
-                      ),
+                          fontSize: 18.0,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF002A52)),
                     ),
                   ),
                   if (categorias.isNotEmpty)
@@ -761,13 +936,8 @@ class _GastosScreenState extends State<GastosScreen> {
                           icon: Icon(Icons.delete),
                           color: Colors.red,
                           onPressed: () {
-                            context.read<CategoriasBloc>().add(
-                                  DeleteCategoria(
-                                    categoria: categoria,
-                                  ),
-                                );
-
-                            Navigator.of(context).pop();
+                            _mostrarDialogoEliminarCategoria(
+                                context, categoria);
                           },
                         ),
                       )
@@ -813,6 +983,103 @@ class _GastosScreenState extends State<GastosScreen> {
               gasto.vehiculoId == vehiculoId)
           .toList();
     }
+  }
+
+  void _mostrarDialogoEliminarGasto(BuildContext context, Gasto gasto) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Eliminar Gasto'),
+          content: Text('¿Estás seguro que deseas eliminar este gasto?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Cancelar
+              },
+              child: Text('Cancelar',
+                  style: TextStyle(
+                    color: Color(0xFF002A52),
+                    fontWeight: FontWeight.bold,
+                  )),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                // Eliminar el vehículo
+                context.read<GastosBloc>().add(
+                      DeleteGasto(
+                        gasto: gasto,
+                      ),
+                    );
+                Navigator.of(context).pop(); // Cerrar el diálogo
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red, // Color rojo para indicar peligro
+              ),
+              child: Text(
+                'Aceptar',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _mostrarDialogoEliminarCategoria(
+      BuildContext context, Categoria categoria) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Eliminar Categoría'),
+          content: Text('¿Estás seguro que deseas eliminar esta categoría?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Cancelar
+              },
+              child: Text('Cancelar',
+                  style: TextStyle(
+                    color: Color(0xFF002A52),
+                    fontWeight: FontWeight.bold,
+                  )),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                context.read<CategoriasBloc>().add(
+                      DeleteCategoria(
+                        categoria: categoria,
+                      ),
+                    );
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content: Text(
+                    "categoria eliminada.",
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  // backgroundColor: Colors.green,
+                ));
+                Navigator.of(context).pop(); // Cerrar el diálogo
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red, // Color rojo para indicar peligro
+              ),
+              child: Text(
+                'Aceptar',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   // void _mostrarDialogoVerCategorias(BuildContext context, List<Categoria> categorias) {
