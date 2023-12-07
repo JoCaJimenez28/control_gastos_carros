@@ -1,6 +1,5 @@
 import 'package:bloc/bloc.dart';
 import 'package:control_gastos_carros/blocs/gastosBlocDb.dart';
-import 'package:control_gastos_carros/modelos/gastos.dart';
 import 'package:flutter/material.dart';
 import 'package:mockito/mockito.dart';
 import 'package:control_gastos_carros/database/database.dart';
@@ -103,7 +102,8 @@ class VehiculosBlocDb extends Bloc<VehiculoEvento, VehiculoEstado> {
   void _deleteVehiculo(DeleteVehiculo event, Emitter<VehiculoEstado> emit) async {
   try {
     // 1. Eliminar los gastos asociados al vehículo
-     _eliminarGastosDelVehiculo(event.vehiculo, context);
+    //  _eliminarGastosDelVehiculo(event.vehiculo, context);
+    deleteGastosPorVehiculo(event.vehiculo.id!);
 
     // 2. Eliminar el vehículo
     List<Vehiculo> updatedList = await deleteVehiculo(event.vehiculo);
@@ -113,23 +113,23 @@ class VehiculosBlocDb extends Bloc<VehiculoEvento, VehiculoEstado> {
   }
 }
 
-void _eliminarGastosDelVehiculo(Vehiculo vehiculo, BuildContext context) async {
-  // Obtener el Bloc de Gastos usando context.read
-  // final gastosBloc = await this.context.read<GastosBloc>();
+// void _eliminarGastosDelVehiculo(Vehiculo vehiculo, BuildContext context) async {
+//   // Obtener el Bloc de Gastos usando context.read
+//   // final gastosBloc = await this.context.read<GastosBloc>();
 
-  // Obtener la lista de gastos relacionados con el vehículo
-  List<Gasto> gastosDelVehiculo = await obtenerGastosPorVehiculo(vehiculo.id!);
+//   // Obtener la lista de gastos relacionados con el vehículo
+//   List<Gasto> gastosDelVehiculo = await obtenerGastosPorVehiculo(vehiculo.id!);
 
-  // Eliminar cada gasto de la lista
-  for (var gasto in gastosDelVehiculo) {
-    try {
-      context.read<GastosBloc>().add(DeleteGasto(gasto: gasto));
-    } catch (e) {
-      // Manejar el error si es necesario
-      print('Error al eliminar el gasto: $e');
-    }
-  }
-}
+//   // Eliminar cada gasto de la lista
+//   // for (var gasto in gastosDelVehiculo) {
+//   //   try {
+//   //     context.read<GastosBloc>().add(DeleteGasto(gasto: gasto));
+//   //   } catch (e) {
+//   //     // Manejar el error si es necesario
+//   //     print('Error al eliminar el gasto: $e');
+//   //   }
+//   // }
+// }
 
   // void _deleteVehiculo(DeleteVehiculo event, Emitter<VehiculoEstado> emit) async {
   //   try {
@@ -187,9 +187,6 @@ void _eliminarGastosDelVehiculo(Vehiculo vehiculo, BuildContext context) async {
 
     if (db == null) {
       print('Error: Database not initialized.');
-      return [];
-    }
-    if( getVehiculoByPlaca(vehiculo.placa) == null){
       return [];
     }
     await db.insert(

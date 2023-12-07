@@ -10,37 +10,31 @@ class CategoriasDialog extends StatelessWidget {
     return Dialog(
       child: BlocBuilder<CategoriasBloc, CategoriasEstado>(
           builder: (context, state) {
-            if (state is CategoriasEstado) {
-              List<Categoria> categorias = state.categorias;
-    
-              return SingleChildScrollView(
-                child: Column(
-                  children: [
-                    for (Categoria categoria in categorias)
-                      ListTile(
-                        title: Text(categoria.nombre),
-                        trailing: IconButton(
-                          icon: Icon(Icons.delete),
-                          onPressed: () {
-                            // Handle delete category action
-                            context.read<CategoriasBloc>().add(
-                                  DeleteCategoria(
-                                    categoria: categoria,
-                                  ),
-                                );
-                            Navigator.of(context).pop(); // Close the dialog
-                          },
-                        ),
+            List<Categoria> categorias = state.categorias;
+  
+            return SingleChildScrollView(
+              child: Column(
+                children: [
+                  for (Categoria categoria in categorias)
+                    ListTile(
+                      title: Text(categoria.nombre),
+                      trailing: IconButton(
+                        icon: Icon(Icons.delete),
+                        onPressed: () {
+                          // Handle delete category action
+                          context.read<CategoriasBloc>().add(
+                                DeleteCategoria(
+                                  categoria: categoria,
+                                ),
+                              );
+                          Navigator.of(context).pop(); // Close the dialog
+                        },
                       ),
-                  ],
-                ),
-              );
-            } else {
-              return Center(
-                child: CircularProgressIndicator(),
-              );
-            }
-          },
+                    ),
+                ],
+              ),
+            );
+                    },
         ),
     );
   }

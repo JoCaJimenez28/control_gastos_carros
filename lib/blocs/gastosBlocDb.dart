@@ -86,15 +86,10 @@ class GastosBloc extends Bloc<GastoEvento, GastoEstado> {
       Gasto? editGasto = event.gasto;
       print("editGasto: $editGasto");
 
-      if (editGasto != null) {
-        _gastos = await updateGasto(event.gasto);
-        emit(GastoEstado(gastos: _gastos));
-        print('Gasto actualizado con éxito!');
-      } else {
-        // emitErrorSnackBar(emit, 'Vehículo no encontrado para actualizar.');
-        print("gasto no encontrado");
-      }
-    } catch (e) {
+      _gastos = await updateGasto(event.gasto);
+      emit(GastoEstado(gastos: _gastos));
+      print('Gasto actualizado con éxito!');
+        } catch (e) {
       // emitErrorSnackBar(emit, 'Error al actualizar el vehículo: $e');
       print("Error al actualizar el vehiculo");
     }
@@ -112,6 +107,8 @@ class GastosBloc extends Bloc<GastoEvento, GastoEstado> {
     }
   }
 }
+
+
 
 Future<List<Gasto>> getAllGastosFromDb() async {
     final Database? db = await DatabaseHelper().database;
@@ -295,5 +292,35 @@ Future<List<Gasto>> getAllGastosFromDb() async {
           vehiculoId: e['vehiculoId']);
     }).toList();
 
+    return updatedList;
+  }
+
+  Future<List<Gasto>> deleteGastosPorVehiculo(int vehiculoId) async {
+    final Database? db = await DatabaseHelper().database;
+
+    if (db == null) {
+      print('Error: Database not initialized.');
+      return [];
+    }
+
+    await db.delete(
+      'gastos',
+      where: 'vehiculoId = ?',
+      whereArgs: [vehiculoId], 
+    );
+
+
+    List<Map<String, dynamic>> data = await db.query('gastos');
+    List<Gasto> updatedList = data.map((e) {
+      return Gasto(
+          id: e['ID'],
+          tipoGasto: e['tipoGasto'],
+          monto: double.parse(e['monto'].toString()),
+          fecha: DateTime.parse(e['fecha']),
+          descripcion: e['descripcion'],
+          categoriaId: e['categoriaId'],
+          vehiculoId: e['vehiculoId']);
+    }).toList();
+    print('elimando gastos de vehiculo: $updatedList');
     return updatedList;
   }

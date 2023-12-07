@@ -1,4 +1,3 @@
-import 'package:bloc/bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:control_gastos_carros/blocs/vehiculosBlocDb.dart';
@@ -87,7 +86,7 @@ class GastosBloc extends Bloc<GastoEvento, GastoEstado> {
   }
 
   void _deleteGasto(DeleteGasto event, Emitter<GastoEstado> emit) {
-    List<Gasto> updatedGastos = List.from(state.gastos);
+    // List<Gasto> updatedGastos = List.from(state.gastos);
     if (_gastos.contains(event.gasto)) {
       _gastos = _gastos.copiar()..remove(event.gasto);
       print('a eliminar; ${event.gasto}');

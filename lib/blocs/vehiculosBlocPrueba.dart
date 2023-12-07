@@ -81,7 +81,7 @@ class VehiculosBloc extends Bloc<VehiculoEvento, VehiculoEstado> {
   }
 
   void _deleteVehiculo(DeleteVehiculo event, Emitter<VehiculoEstado> emit) {
-    List<Vehiculo> updatedVehiculos = List.from(state.vehiculos);
+    // List<Vehiculo> updatedVehiculos = List.from(state.vehiculos);
     if (_vehiculos.contains(event.vehiculo)) {
       _vehiculos = _vehiculos.copiar()..remove(event.vehiculo);
       print('a eliminar; ${event.vehiculo}');
