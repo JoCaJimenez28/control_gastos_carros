@@ -1,9 +1,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:control_gastos_carros/modelos/categorias.dart';
-import 'package:flutter/material.dart';
 import 'package:mockito/mockito.dart';
 import 'package:control_gastos_carros/database/database.dart';
-import 'package:control_gastos_carros/modelos/vehiculos.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
@@ -122,7 +120,7 @@ class CategoriasBloc extends Bloc<CategoriaEvento, CategoriasEstado> {
     final Database? db = await DatabaseHelper().database;
 
     if (db == null) {
-      print('Error: Database not initialized.');
+      // print('Error: Database not initialized.');
       return [];
     }
 
@@ -166,7 +164,7 @@ class CategoriasBloc extends Bloc<CategoriaEvento, CategoriasEstado> {
     final Database? db = await DatabaseHelper().database;
 
     if (db == null) {
-      print('Error: Database not initialized.');
+      // print('Error: Database not initialized.');
       return null;
     }
 
@@ -184,14 +182,14 @@ class CategoriasBloc extends Bloc<CategoriaEvento, CategoriasEstado> {
         nombre: categoriaData['nombre'],
       );
     } else {
-      print('Categoria con nombre $nombre no encontrada.');
+      // print('Categoria con nombre $nombre no encontrada.');
       return null;
     }
   }
 
   Future<List<Categoria>> updateCategoria(Categoria? categoria) async {
     final Database? db = await DatabaseHelper().database;
-    print("entro al update");
+    // print("entro al update");
     if (categoria == null) {
       print("no hay categoria");
       return [];

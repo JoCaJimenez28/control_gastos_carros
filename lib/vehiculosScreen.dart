@@ -973,8 +973,8 @@ class _VehiculosScreenState extends State<VehiculosScreen> {
     context: context,
     builder: (BuildContext context) {
       return AlertDialog(
-        title: Text('Eliminar Vehículo'),
-        content: Text('¿Estás seguro que deseas eliminar este vehículo?'),
+        title: Text('¿Eliminar éste vehículo?', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+        content: Text('Esta acción borrará el vehículo y sus gastos permanentemente'),
         actions: [
           TextButton(
             onPressed: () {
@@ -989,6 +989,7 @@ class _VehiculosScreenState extends State<VehiculosScreen> {
           ElevatedButton(
             onPressed: () {
               // Eliminar el vehículo
+              
               context.read<VehiculosBlocDb>().add(
                     DeleteVehiculo(context: context, vehiculo: vehiculo),
                   );
