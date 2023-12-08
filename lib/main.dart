@@ -8,6 +8,7 @@ import 'package:control_gastos_carros/inicioScreen.dart';
 import 'package:control_gastos_carros/modelos/categorias.dart';
 import 'package:control_gastos_carros/vehiculosScreen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 void main() async {
@@ -16,6 +17,11 @@ void main() async {
   DatabaseHelper dbHelper = DatabaseHelper();
   await dbHelper.iniciarDatabase();
 
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown
+  ]);
+  
   runApp(MyApp());
 }
 

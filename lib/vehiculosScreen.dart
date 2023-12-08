@@ -133,8 +133,7 @@ class _VehiculosScreenState extends State<VehiculosScreen> {
                                     icon: const Icon(Icons.delete),
                                     color: Colors.red,
                                     onPressed: () {
-                                      _mostrarDialogoEliminarVehiculo(context, vehiculosOrdenados[index]
-                                      );
+                                      _mostrarDialogoEliminarVehiculo(context, vehiculosOrdenados[index]);
                                     },
                                   ),
                                 ],

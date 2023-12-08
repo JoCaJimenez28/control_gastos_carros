@@ -66,19 +66,19 @@ class CategoriasBloc extends Bloc<CategoriaEvento, CategoriasEstado> {
     on<DeleteCategoria>(_deleteCategoria);
   }
 
-  void _addcategoria(AddCategoria event, Emitter<CategoriasEstado> emit) async {
-    print("entro al _add");
-    try {
-      await DatabaseHelper().iniciarDatabase();
-      _categorias = await insertCategoria(event.categoria);
-    print("inserto categoria");
-      emit(CategoriasEstado(categorias: _categorias));
-    print("estado: ${_categorias}");
+  // void _addcategoria(AddCategoria event, Emitter<CategoriasEstado> emit) async {
+  //   print("entro al _add");
+  //   try {
+  //     await DatabaseHelper().iniciarDatabase();
+  //     _categorias = await insertCategoria(event.categoria);
+  //   print("inserto categoria");
+  //     emit(CategoriasEstado(categorias: _categorias));
+  //   print("estado: ${_categorias}");
 
-    } catch (e) {
-      emitErrorSnackBar(emit, 'Error al agregar vehículo: $e');
-    }
-  }
+  //   } catch (e) {
+  //     emitErrorSnackBar(emit, 'Error al agregar vehículo: $e');
+  //   }
+  // }
 
   void _updateCategoria(UpdateCategoria event, Emitter<CategoriasEstado> emit) async {
     try {
@@ -134,31 +134,100 @@ class CategoriasBloc extends Bloc<CategoriaEvento, CategoriasEstado> {
     return listaOriginal;
   }
 
-  Future<List<Categoria>> insertCategoria(Categoria categoria) async {
-    final Database? db = await DatabaseHelper().database;
+  void _addcategoria(AddCategoria event, Emitter<CategoriasEstado> emit) async {
+  print("entro al _add");
+  try {
+    await DatabaseHelper().iniciarDatabase();
 
-    if (db == null) {
-      print('Error: Database not initialized.');
-      return [];
+    // Verificar si la categoría ya existe
+    List<Categoria> categoriasExistentes = await getAllCategoriasFromDb();
+    bool categoriaExiste = categoriasExistentes.any((cat) => cat.nombre == event.categoria.nombre);
+
+    if (categoriaExiste) {
+      emit(CategoriasEstado(categorias: _categorias, error: 'Ya existe una categoría con ese nombre'));
+      return;
     }
-    await db.insert(
-      'categorias',
-      {
-        'nombre': categoria.nombre,
-      },
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
 
-    List<Map<String, dynamic>> data = await db.query('categorias');
-    List<Categoria> listaOriginal = data.map((e) {
-      return Categoria(
-        id: e['ID'],
-        nombre: e['nombre'],
-      );
-    }).toList();
+    _categorias = await insertCategoria(event.categoria);
+    print("inserto categoria");
+    emit(CategoriasEstado(categorias: _categorias));
+    print("estado: ${_categorias}");
 
-    return listaOriginal;
+  } catch (e) {
+    emit(CategoriasEstado(categorias: _categorias, error: 'Error al agregar categoría: $e'));
   }
+}
+
+Future<List<Categoria>> insertCategoria(Categoria categoria) async {
+  final Database? db = await DatabaseHelper().database;
+
+  if (db == null) {
+    print('Error: Database not initialized.');
+    return [];
+  }
+  
+  await db.insert(
+    'categorias',
+    {
+      'nombre': categoria.nombre,
+    },
+    conflictAlgorithm: ConflictAlgorithm.abort, // Cambiado a ConflictAlgorithm.abort
+  );
+
+  List<Map<String, dynamic>> data = await db.query('categorias');
+  List<Categoria> listaOriginal = data.map((e) {
+    return Categoria(
+      id: e['ID'],
+      nombre: e['nombre'],
+    );
+  }).toList();
+
+  return listaOriginal;
+}
+
+Future<List<Categoria>> getCategorias() async {
+  final Database? db = await DatabaseHelper().database;
+  if (db == null) {
+    print('Error: Database not initialized.');
+    return [];
+  }
+
+  List<Map<String, dynamic>> data = await db.query('categorias');
+  List<Categoria> listaCategorias = data.map((e) {
+    return Categoria(
+      id: e['ID'],
+      nombre: e['nombre'],
+    );
+  }).toList();
+
+  return listaCategorias;
+}
+
+  // Future<List<Categoria>> insertCategoria(Categoria categoria) async {
+  //   final Database? db = await DatabaseHelper().database;
+
+  //   if (db == null) {
+  //     print('Error: Database not initialized.');
+  //     return [];
+  //   }
+  //   await db.insert(
+  //     'categorias',
+  //     {
+  //       'nombre': categoria.nombre,
+  //     },
+  //     conflictAlgorithm: ConflictAlgorithm.replace,
+  //   );
+
+  //   List<Map<String, dynamic>> data = await db.query('categorias');
+  //   List<Categoria> listaOriginal = data.map((e) {
+  //     return Categoria(
+  //       id: e['ID'],
+  //       nombre: e['nombre'],
+  //     );
+  //   }).toList();
+
+  //   return listaOriginal;
+  // }
 
   Future<Categoria?> getCategoriaByNombre(String nombre) async {
     final Database? db = await DatabaseHelper().database;

@@ -214,7 +214,7 @@ class _InicioScreenState extends State<InicioScreen>
                     SfCircularChart(
                       title: ChartTitle(
                           text:
-                              '% Gastos semanales por vehiculo: \$$totalGastos'),
+                              '% Gastos de vehículos por fecha: \$$totalGastos'),
                       legend: const Legend(isVisible: true),
                       series: <CircularSeries>[
                         PieSeries<ChartData, String>(
@@ -284,14 +284,22 @@ class _InicioScreenState extends State<InicioScreen>
               itemBuilder: (context, index) {
                 Gasto gasto = gastosDelDia[index];
             
-                Categoria? categoriaDelGasto = categorias
-                    .firstWhere((categoria) => categoria.id == gasto.categoriaId);
+            Categoria? categoriaDelGasto;
+            Vehiculo? vehiculo;
+                try{
+                  categoriaDelGasto = categorias.firstWhere((categoria) => categoria.id == gasto.categoriaId);
+
+                  vehiculo = vehiculos.firstWhere((v) => v.id == gasto.vehiculoId);
+                } catch(e){
+                  categoriaDelGasto = Categoria(nombre: 'Sin categoria');
+                  vehiculo = Vehiculo(marca: "Desconocido", placa: "Desconocido", modelo: "Desconocido", anio: "Desconocido", color: "Desconocido");
+                }
             
                 String nombreCategoria =
-                    categoriaDelGasto?.nombre ?? 'Sin categoría';
+                    categoriaDelGasto.nombre ?? 'Sin categoría';
             
-                Vehiculo? vehiculo =
-                    vehiculos.firstWhere((v) => v.id == gasto.vehiculoId);
+                
+
                 String modeloVehiculo = vehiculo.modelo ?? 'Desconocido';
             
                 return ListTile(

@@ -36,8 +36,10 @@ class _GastosScreenState extends State<GastosScreen> {
     var estadoCategorias = context.watch<CategoriasBloc>().state;
 
     print('BlocBuilder reconstruido. Nuevo estadoGastos: $estadoGastos');
+    print('BlocBuilder reconstruido. Nuevo estadoCats: $estadoCategorias');
 
-    List<Categoria> categoriasOrdenadas = List.from(estadoCategorias.categorias);
+    List<Categoria> categoriasOrdenadas =
+        List.from(estadoCategorias.categorias);
     categoriasOrdenadas.sort((a, b) => a.nombre.compareTo(b.nombre));
 
     List<Vehiculo> vehiculosOrdenados = List.from(estadoVehiculos.vehiculos);
@@ -48,6 +50,7 @@ class _GastosScreenState extends State<GastosScreen> {
 // gastosOrdenados.sort((a, b) => a.nombre.compareTo(b.nombre));
 
     double totalMonto;
+
     if (selectedVehiculoId == 0 && selectedCategoriaId == 0) {
       totalMonto =
           estadoGastos.gastos.fold(0.0, (sum, gasto) => sum + gasto.monto);
@@ -66,7 +69,7 @@ class _GastosScreenState extends State<GastosScreen> {
               gasto.categoriaId == selectedCategoriaId)
           .fold(0.0, (sum, gasto) => sum + gasto.monto);
     }
-
+    context.read<GastosBloc>().add(GastosInicializado());
     return Scaffold(
       appBar: AppBar(
         backgroundColor: const Color(0xFF002A52),
@@ -76,8 +79,7 @@ class _GastosScreenState extends State<GastosScreen> {
             iconColor: Colors.white,
             onSelected: (value) {
               if (value == 'ver_categorias') {
-                _mostrarDialogoVerCategorias(
-                    context, categoriasOrdenadas);
+                _mostrarDialogoVerCategorias(context, categoriasOrdenadas);
               }
             },
             itemBuilder: (BuildContext context) {
@@ -192,7 +194,8 @@ class _GastosScreenState extends State<GastosScreen> {
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.directions_car, color: Color(0xCC002A52)),
+                      const Icon(Icons.directions_car,
+                          color: Color(0xCC002A52)),
                       const SizedBox(width: 8),
                       Expanded(
                         child: DropdownButton<int>(
@@ -240,6 +243,9 @@ class _GastosScreenState extends State<GastosScreen> {
                               selectedCategoriaId, selectedVehiculoId)
                           .length,
                       itemBuilder: (context, index) {
+                        // var nuevoEstadoGastos = context.watch<GastosBloc>().state;
+
+                        print('NewestadiGastos: ${estadoGastos.gastos}');
                         var gastosFiltrados = filtrarGastos(estadoGastos.gastos,
                             selectedCategoriaId, selectedVehiculoId);
                         var gasto = gastosFiltrados[index];
@@ -284,10 +290,7 @@ class _GastosScreenState extends State<GastosScreen> {
                                 icon: const Icon(Icons.delete),
                                 color: Colors.red,
                                 onPressed: () {
-                                  _mostrarDialogoEliminarGasto(
-                                    context,
-                                    gasto
-                                  );
+                                  _mostrarDialogoEliminarGasto(context, gasto);
                                 },
                               ),
                             ],
@@ -305,19 +308,30 @@ class _GastosScreenState extends State<GastosScreen> {
           FloatingActionButton(
             backgroundColor: const Color(0xFF002A52),
             onPressed: () {
-              _mostrarDialogoAgregarCategoria(context);
+              _mostrarDialogoAgregarCategoria(context, estadoCategorias);
+              // estadoCategorias = context.watch<CategoriasBloc>().state;
+              print('error cat: ${estadoCategorias.error}');
+              if (estadoCategorias.error != "") {
+                  estadoCategorias.error = "";
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(estadoCategorias.error),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+              }
             },
             child: const Icon(
               Icons.category,
               color: Colors.white,
             ),
           ),
-          const SizedBox(width: 16.0), 
+          const SizedBox(width: 16.0),
           FloatingActionButton(
             backgroundColor: const Color(0xFF002A52),
             onPressed: () {
-              _mostrarDialogoAgregarGasto(context, vehiculosOrdenados,
-                  categoriasOrdenadas);
+              _mostrarDialogoAgregarGasto(
+                  context, vehiculosOrdenados, categoriasOrdenadas);
             },
             child: const Icon(
               Icons.add,
@@ -456,7 +470,8 @@ class _GastosScreenState extends State<GastosScreen> {
                           : 'Seleccione un vehículo'),
                     ),
                     TextFormField(
-                      decoration: const InputDecoration(labelText: 'Descripción'),
+                      decoration:
+                          const InputDecoration(labelText: 'Descripción'),
                       controller: descripcionController,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -667,7 +682,8 @@ class _GastosScreenState extends State<GastosScreen> {
                       },
                     ),
                     TextFormField(
-                      decoration: const InputDecoration(labelText: 'Descripción'),
+                      decoration:
+                          const InputDecoration(labelText: 'Descripción'),
                       controller: descripcionController,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -693,7 +709,7 @@ class _GastosScreenState extends State<GastosScreen> {
                                             fechaController.text),
                                         descripcion: descripcionController.text,
                                         categoriaId:
-                                            categoriaSeleccionada?.id ?? 0,
+                                            selectedCategoria?.id ?? 0,
                                         vehiculoId:
                                             vehiculoSeleccionado.id ?? 0,
                                       ),
@@ -744,7 +760,8 @@ class _GastosScreenState extends State<GastosScreen> {
     );
   }
 
-  void _mostrarDialogoAgregarCategoria(BuildContext context) {
+  void _mostrarDialogoAgregarCategoria(
+      BuildContext context, CategoriasEstado estadoCategorias) {
     final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
     TextEditingController nombreCategoriaController = TextEditingController();
 
@@ -780,8 +797,8 @@ class _GastosScreenState extends State<GastosScreen> {
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
-                      decoration:
-                          const InputDecoration(labelText: 'Nombre de la Categoría'),
+                      decoration: const InputDecoration(
+                          labelText: 'Nombre de la Categoría'),
                       controller: nombreCategoriaController,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -793,6 +810,17 @@ class _GastosScreenState extends State<GastosScreen> {
                         if (caracteresEspeciales.hasMatch(value)) {
                           return 'No se permiten caracteres especiales ni números';
                         }
+
+                        // Validar que la placa no sea igual a otras registradas
+                        final estado = context.read<CategoriasBloc>();
+                        final categorias = estado.state.categorias;
+                        final categoriaExiste = categorias.any(
+                          (categoria) =>
+                              categoria.nombre ==
+                              value.trim(),
+                        );
+
+                        if (categoriaExiste) return 'Esta categoría ya existe.';
                         return null;
                       },
                     ),
@@ -802,27 +830,29 @@ class _GastosScreenState extends State<GastosScreen> {
                       children: [
                         ElevatedButton(
                           onPressed: () {
+                            String nombreSinEspacios =
+                                  nombreCategoriaController.text.trim();
                             if (_formKey.currentState!.validate()) {
                               context.read<CategoriasBloc>().add(
                                     AddCategoria(
                                       categoria: Categoria(
-                                          nombre:
-                                              nombreCategoriaController.text),
+                                          nombre: nombreSinEspacios
+                                        ),
                                     ),
                                   );
-                              print(
-                                  'Categoría agregada: ${nombreCategoriaController.text}');
-
-                              ScaffoldMessenger.of(context)
-                                  .showSnackBar(const SnackBar(
-                                content: Text(
-                                  "Categoría agregada!",
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                                backgroundColor: Colors.green,
-                              ));
+                              // print(
+                              //     'Categoría agregada: ${nombreCategoriaController.text}');
+                              // ScaffoldMessenger.of(context)
+                              //     .showSnackBar(const SnackBar(
+                              //   content: Text(
+                              //     "Categoría agregada!",
+                              //     style: TextStyle(color: Colors.white),
+                              //   ),
+                              //   backgroundColor: Colors.green,
+                              // ));
                               Navigator.of(context).pop();
                             }
+                            // if(estadoCategorias != "") print("entro al if con error");
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF002A52),
@@ -912,8 +942,8 @@ class _GastosScreenState extends State<GastosScreen> {
     );
   }
 
-  List<Gasto> filtrarGastos(List<Gasto> todosLosGastos, int categoriaId, int vehiculoId) {
-
+  List<Gasto> filtrarGastos(
+      List<Gasto> todosLosGastos, int categoriaId, int vehiculoId) {
     if (categoriaId == 0 && vehiculoId == 0) {
       // Mostrar todos los gastos si no hay filtros aplicados
       return todosLosGastos;
@@ -942,7 +972,8 @@ class _GastosScreenState extends State<GastosScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('¿Eliminar éste gasto?', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+          title: const Text('¿Eliminar éste gasto?',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
           content: const Text('El gasto se eliminará permanentemente'),
           actions: [
             TextButton(
@@ -962,10 +993,10 @@ class _GastosScreenState extends State<GastosScreen> {
                         gasto: gasto,
                       ),
                     );
-                Navigator.of(context).pop(); 
+                Navigator.of(context).pop();
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red, 
+                backgroundColor: Colors.red,
               ),
               child: const Text(
                 'Aceptar',
@@ -987,7 +1018,8 @@ class _GastosScreenState extends State<GastosScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('¿Eliminar ésta categoría?', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+          title: const Text('¿Eliminar ésta categoría?',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
           content: const Text('La categoría se eliminará permanentemente'),
           actions: [
             TextButton(
@@ -1013,10 +1045,10 @@ class _GastosScreenState extends State<GastosScreen> {
                     style: TextStyle(color: Colors.white),
                   ),
                 ));
-                Navigator.of(context).pop(); 
+                Navigator.of(context).pop();
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red, 
+                backgroundColor: Colors.red,
               ),
               child: const Text(
                 'Aceptar',
