@@ -83,12 +83,12 @@ class CategoriasBloc extends Bloc<CategoriaEvento, CategoriasEstado> {
   void _updateCategoria(UpdateCategoria event, Emitter<CategoriasEstado> emit) async {
     try {
       Categoria? editCategoria = await getCategoriaByNombre(event.categoria.nombre);
-      print("editCategoria: $editCategoria");
+      // print("editCategoria: $editCategoria");
 
       if (editCategoria != null) {
         _categorias = await updateCategoria(event.categoria);
         emit(CategoriasEstado(categorias: _categorias));
-        print('Categoria actualizado con éxito!');
+        // print('Categoria actualizado con éxito!');
       } else {
         emitErrorSnackBar(emit, 'Categoria no encontrado para actualizar.');
       }
@@ -99,13 +99,13 @@ class CategoriasBloc extends Bloc<CategoriaEvento, CategoriasEstado> {
 
   void _deleteCategoria(DeleteCategoria event, Emitter<CategoriasEstado> emit) async {
     try {
-      print("entro al delete");
+      // print("entro al delete");
       List<Categoria> updatedList = await deleteCategoria(event.categoria);
       emit(CategoriasEstado(categorias: updatedList));
-      print('categoria eliminada con éxito!');
+      // print('categoria eliminada con éxito!');
     } catch (e) {
       emitErrorSnackBar(emit, 'Error al eliminar categoria: $e');
-      print('errorDelete $e');
+      // print('errorDelete $e');
     }
   }
 
@@ -135,7 +135,7 @@ class CategoriasBloc extends Bloc<CategoriaEvento, CategoriasEstado> {
   }
 
   void _addcategoria(AddCategoria event, Emitter<CategoriasEstado> emit) async {
-  print("entro al _add");
+  // print("entro al _add");
   try {
     await DatabaseHelper().iniciarDatabase();
 
@@ -149,9 +149,9 @@ class CategoriasBloc extends Bloc<CategoriaEvento, CategoriasEstado> {
     }
 
     _categorias = await insertCategoria(event.categoria);
-    print("inserto categoria");
+    // print("inserto categoria");
     emit(CategoriasEstado(categorias: _categorias));
-    print("estado: ${_categorias}");
+    // print("estado: ${_categorias}");
 
   } catch (e) {
     emit(CategoriasEstado(categorias: _categorias, error: 'Error al agregar categoría: $e'));
@@ -162,7 +162,7 @@ Future<List<Categoria>> insertCategoria(Categoria categoria) async {
   final Database? db = await DatabaseHelper().database;
 
   if (db == null) {
-    print('Error: Database not initialized.');
+    // print('Error: Database not initialized.');
     return [];
   }
   
@@ -188,7 +188,7 @@ Future<List<Categoria>> insertCategoria(Categoria categoria) async {
 Future<List<Categoria>> getCategorias() async {
   final Database? db = await DatabaseHelper().database;
   if (db == null) {
-    print('Error: Database not initialized.');
+    // print('Error: Database not initialized.');
     return [];
   }
 
@@ -260,12 +260,12 @@ Future<List<Categoria>> getCategorias() async {
     final Database? db = await DatabaseHelper().database;
     // print("entro al update");
     if (categoria == null) {
-      print("no hay categoria");
+      // print("no hay categoria");
       return [];
     }
 
     if (db == null) {
-      print('Error: Database not initialized.');
+      // print('Error: Database not initialized.');
       return [];
     }
 
@@ -293,7 +293,7 @@ Future<List<Categoria>> getCategorias() async {
     final Database? db = await DatabaseHelper().database;
 
     if (db == null) {
-      print('Error: Database not initialized.');
+      // print('Error: Database not initialized.');
       return [];
     }
 

@@ -1,7 +1,6 @@
-import 'package:bloc/bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:control_gastos_carros/blocs/vehiculosBlocDb.dart';
+import 'package:control_gastos_carros/blocs/vehiculos_bloc_db.dart';
 import 'package:control_gastos_carros/database/database.dart';
 import 'package:control_gastos_carros/modelos/gastos.dart';
 import 'package:control_gastos_carros/modelos/vehiculos.dart';
@@ -62,7 +61,7 @@ class GastosBloc extends Bloc<GastoEvento, GastoEstado> {
   }
 
   void _addGasto(AddGasto event, Emitter<GastoEstado> emit) async {
-    Vehiculo? vehiculo = await this.context.read<VehiculosBlocDb>().getVehiculoById(event.gasto.vehiculoId);
+    Vehiculo? vehiculo = await context.read<VehiculosBlocDb>().getVehiculoById(event.gasto.vehiculoId);
 
     if (vehiculo != null) {
       try {
@@ -71,27 +70,26 @@ class GastosBloc extends Bloc<GastoEvento, GastoEstado> {
         emit(GastoEstado(gastos: _gastos));
       } catch (e) {
         // emitErrorSnackBar(emit, 'Error al agregar gasto: $e');
-        print('error al agregar gasto');
+        // print('error al agregar gasto');
       }
     } else {
-      print('No existe el vehiculo');
+      // print('No existe el vehiculo');
     }
   }
 
   void _updateGasto(UpdateGasto event, Emitter<GastoEstado> emit) async {
-    Vehiculo? vehiculo = await this.context.read<VehiculosBlocDb>().getVehiculoById(event.gasto.vehiculoId);
+    Vehiculo? vehiculo = await context.read<VehiculosBlocDb>().getVehiculoById(event.gasto.vehiculoId);
 
     if (vehiculo != null){
       try {
-      Gasto? editGasto = event.gasto;
-      print("editGasto: $editGasto");
+      // print("editGasto: $editGasto");
 
       _gastos = await updateGasto(event.gasto);
       emit(GastoEstado(gastos: _gastos));
-      print('Gasto actualizado con éxito!');
+      // print('Gasto actualizado con éxito!');
         } catch (e) {
       // emitErrorSnackBar(emit, 'Error al actualizar el vehículo: $e');
-      print("Error al actualizar el vehiculo");
+      // print("Error al actualizar el vehiculo");
     }
     }
   }
@@ -100,10 +98,10 @@ class GastosBloc extends Bloc<GastoEvento, GastoEstado> {
     try {
       List<Gasto> updatedList = await deleteGasto(event.gasto);
       emit(GastoEstado(gastos: updatedList));
-      print('Gasto eliminado con éxito!');
+      // print('Gasto eliminado con éxito!');
     } catch (e) {
       // emitErrorSnackBar(emit, 'Error al eliminar el vehículo: $e');
-      print("Error al borrar el gasto");
+      // print("Error al borrar el gasto");
     }
   }
 }
@@ -114,7 +112,7 @@ Future<List<Gasto>> getAllGastosFromDb() async {
     final Database? db = await DatabaseHelper().database;
 
     if (db == null) {
-      print('Error: Database not initialized.');
+      // print('Error: Database not initialized.');
       return [];
     }
 
@@ -137,7 +135,7 @@ Future<List<Gasto>> getAllGastosFromDb() async {
     final Database? db = await DatabaseHelper().database;
 
     if (db == null) {
-      print('Error: Database not initialized.');
+      // print('Error: Database not initialized.');
       return [];
     }
 
@@ -173,7 +171,7 @@ Future<List<Gasto>> getAllGastosFromDb() async {
     final Database? db = await DatabaseHelper().database;
 
     if (db == null) {
-      print('Error: Database not initialized.');
+      // print('Error: Database not initialized.');
       return null;
     }
 
@@ -197,10 +195,11 @@ Future<List<Gasto>> getAllGastosFromDb() async {
           vehiculoId: gastoData['vehiculoId']
         );
       } else {
-        print('Gasto con id $id no encontrado.');
+        // print('Gasto con id $id no encontrado.');
         return null;
       }
     }
+    return null;
   }
 
   Future<List<Gasto>> obtenerGastosPorVehiculo(int vehiculoId) async {
@@ -226,14 +225,14 @@ Future<List<Gasto>> getAllGastosFromDb() async {
 
   Future<List<Gasto>> updateGasto(Gasto? gasto) async {
     final Database? db = await DatabaseHelper().database;
-    print("entro al update");
+    // print("entro al update");
     if (gasto == null) {
-      print("no hay gasto");
+      // print("no hay gasto");
       return [];
     }
 
     if (db == null) {
-      print('Error: Database not initialized.');
+      // print('Error: Database not initialized.');
       return [];
     }
 
@@ -270,7 +269,7 @@ Future<List<Gasto>> getAllGastosFromDb() async {
     final Database? db = await DatabaseHelper().database;
 
     if (db == null) {
-      print('Error: Database not initialized.');
+      // print('Error: Database not initialized.');
       return [];
     }
 
@@ -299,7 +298,7 @@ Future<List<Gasto>> getAllGastosFromDb() async {
     final Database? db = await DatabaseHelper().database;
 
     if (db == null) {
-      print('Error: Database not initialized.');
+      // print('Error: Database not initialized.');
       return [];
     }
 
@@ -321,6 +320,6 @@ Future<List<Gasto>> getAllGastosFromDb() async {
           categoriaId: e['categoriaId'],
           vehiculoId: e['vehiculoId']);
     }).toList();
-    print('elimando gastos de vehiculo: $updatedList');
+    // print('elimando gastos de vehiculo: $updatedList');
     return updatedList;
   }

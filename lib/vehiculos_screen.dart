@@ -1,5 +1,5 @@
 // import 'package:control_gastos_carros/blocs/gastosBlocPrueba.dart';
-import 'package:control_gastos_carros/blocs/vehiculosBlocDb.dart';
+import 'package:control_gastos_carros/blocs/vehiculos_bloc_db.dart';
 import 'package:control_gastos_carros/modelos/vehiculos.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -22,7 +22,6 @@ class _VehiculosScreenState extends State<VehiculosScreen> {
 
   @override
   Widget build(BuildContext context) {
-    var estado = context.watch<VehiculosBlocDb>().state;
     return Scaffold(
       appBar: AppBar(
         backgroundColor: const Color(0xFF002A52),
@@ -34,12 +33,11 @@ class _VehiculosScreenState extends State<VehiculosScreen> {
               color: Colors.white,
             ),
             onPressed: () async {
-              final result = await showSearch(
-                context: context,
-                delegate: VehiculosSearch(vehiculos: estado.vehiculos),
-              );
-              // Puedes realizar acciones con el resultado si es necesario
-              print('Resultado de la búsqueda: $result');
+              // final result = await showSearch(
+              //   context: context,
+              //   delegate: VehiculosSearch(vehiculos: estado.vehiculos),
+              // );
+              // print('Resultado de la búsqueda: $result');
             },
           ),
         ],
@@ -48,11 +46,9 @@ class _VehiculosScreenState extends State<VehiculosScreen> {
       body: BlocBuilder<VehiculosBlocDb, VehiculoEstado>(
         builder: (context, state) {
           var estado = context.watch<VehiculosBlocDb>().state;
-          print('BlocBuilder reconstruido. Nuevo estado: $estado');
+          // print('BlocBuilder reconstruido. Nuevo estado: $estado');
 
-          // Check if there is an error
           if (state.error.isNotEmpty) {
-            // Show Snackbar for the error
             _mostrarSnackBar(state.error);
           }
 
@@ -268,7 +264,7 @@ class _VehiculosScreenState extends State<VehiculosScreen> {
                       format: DateFormat("yyyy"),
                       initialValue: DateTime.now(),
                       onChanged: (date) {
-                        print('date: $date');
+                        // print('date: $date');
                         setState(() {
                           if (date != null) {
                             var selectedDate = date;
@@ -278,13 +274,13 @@ class _VehiculosScreenState extends State<VehiculosScreen> {
                         });
                       },
                       onShowPicker: (context, currentValue) async {
-                        print('current $currentValue');
+                        // print('current $currentValue');
                         final date = await showDialog<DateTime>(
                           context: context,
                           builder: (BuildContext context) {
                             return AlertDialog(
                               title: const Text('Seleccione un Año'),
-                              content: Container(
+                              content: SizedBox(
                                 height: 200,
                                 width: 200,
                                 child: YearPicker(
@@ -296,8 +292,7 @@ class _VehiculosScreenState extends State<VehiculosScreen> {
                                       currentValue = value;
                                       anioController.text =
                                           DateFormat("yyyy").format(value);
-                                      print(
-                                          'controller ${anioController.text}');
+                                      // print('controller ${anioController.text}');
                                       Navigator.of(context).pop();
                                     });
                                   },
@@ -511,7 +506,7 @@ class _VehiculosScreenState extends State<VehiculosScreen> {
                       format: DateFormat("yyyy"),
                       initialValue: DateTime.now(),
                       onChanged: (date) {
-                        print('date: $date');
+                        // print('date: $date');
                         setState(() {
                           if (date != null) {
                             var selectedDate = date;
@@ -521,13 +516,13 @@ class _VehiculosScreenState extends State<VehiculosScreen> {
                         });
                       },
                       onShowPicker: (context, currentValue) async {
-                        print('current $currentValue');
+                        // print('current $currentValue');
                         final date = await showDialog<DateTime>(
                           context: context,
                           builder: (BuildContext context) {
                             return AlertDialog(
                               title: const Text('Seleccione un Año'),
-                              content: Container(
+                              content: SizedBox(
                                 height: 200,
                                 width: 200,
                                 child: YearPicker(
@@ -539,8 +534,7 @@ class _VehiculosScreenState extends State<VehiculosScreen> {
                                       currentValue = value;
                                       anioController.text =
                                           DateFormat("yyyy").format(value);
-                                      print(
-                                          'controller ${anioController.text}');
+                                      // print('controller ${anioController.text}');
                                       Navigator.of(context).pop();
                                     });
                                   },

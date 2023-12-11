@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:control_gastos_carros/blocs/vehiculosBlocDb.dart';
+import 'package:control_gastos_carros/blocs/vehiculos_bloc_db.dart';
 import 'package:control_gastos_carros/database/database.dart';
 import 'package:control_gastos_carros/modelos/gastos.dart';
 import 'package:control_gastos_carros/modelos/vehiculos.dart';
@@ -59,29 +59,29 @@ class GastosBloc extends Bloc<GastoEvento, GastoEstado> {
   }
 
   void _addGasto(AddGasto event, Emitter<GastoEstado> emit) async {
-    Vehiculo? vehiculo = await this.context.read<VehiculosBlocDb>().getVehiculoById(event.gasto.vehiculoId);
+    Vehiculo? vehiculo = await context.read<VehiculosBlocDb>().getVehiculoById(event.gasto.vehiculoId);
 
   if (vehiculo != null) {
     _gastos = _gastos.agregar(event.gasto);
     emit(GastoEstado(gastos: _gastos));
-  } else {
-    print("no existe vehiculo");
-  }
+   } //else {
+  //   print("no existe vehiculo");
+  // }
   }
 
   void _updateGasto(UpdateGasto event, Emitter<GastoEstado> emit) {
     List<Gasto> updatedGastos = List.from(state.gastos);
     int index = updatedGastos
         .indexWhere((gasto) => gasto.id == event.gasto.id);
-    print('lista sin actualizar: $updatedGastos ');
+    // print('lista sin actualizar: $updatedGastos ');
 
     if (index != -1) {
       updatedGastos[index] = event.gasto;
-      print('Gasto actualizado: $updatedGastos ');
+      // print('Gasto actualizado: $updatedGastos ');
       emit(GastoEstado(gastos: updatedGastos));
-      print('estado ${state.gastos}');
+      // print('estado ${state.gastos}');
     } else {
-      print('Vehículo no encontrado para actualizar');
+      // print('Vehículo no encontrado para actualizar');
     }
   }
 
@@ -89,12 +89,12 @@ class GastosBloc extends Bloc<GastoEvento, GastoEstado> {
     // List<Gasto> updatedGastos = List.from(state.gastos);
     if (_gastos.contains(event.gasto)) {
       _gastos = _gastos.copiar()..remove(event.gasto);
-      print('a eliminar; ${event.gasto}');
+      // print('a eliminar; ${event.gasto}');
       emit(GastoEstado(gastos: _gastos));
-      print('estado; ${state.gastos}');
-    } else {
-      print("no se encontro el vehiculo a eliminar");
-    }
+      // print('estado; ${state.gastos}');
+     } //else {
+    //   // print("no se encontro el vehiculo a eliminar");
+    // }
   }
 }
 
