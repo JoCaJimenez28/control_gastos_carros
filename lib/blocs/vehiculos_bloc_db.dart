@@ -1,5 +1,5 @@
 import 'package:bloc/bloc.dart';
-import 'package:control_gastos_carros/blocs/gastosBlocDb.dart';
+import 'package:control_gastos_carros/blocs/gastos_bloc_db.dart';
 import 'package:flutter/material.dart';
 import 'package:mockito/mockito.dart';
 import 'package:control_gastos_carros/database/database.dart';
@@ -84,12 +84,12 @@ class VehiculosBlocDb extends Bloc<VehiculoEvento, VehiculoEstado> {
   void _updateVehiculo(UpdateVehiculo event, Emitter<VehiculoEstado> emit) async {
     try {
       Vehiculo? editvehiculo = await getVehiculoById(event.vehiculo.id!);
-      print("editVehiculo: $editvehiculo");
+      // print("editVehiculo: $editvehiculo");
 
       if (editvehiculo != null) {
         _vehiculos = await updateVehiculo(event.vehiculo);
         emit(VehiculoEstado(vehiculos: _vehiculos, message: 'Vehiculo actualizado!', error: ""));
-        print('Vehículo actualizado con éxito!');
+        // print('Vehículo actualizado con éxito!');
       } else {
         throw ErrorHint('hubo un problema al actualizar el vehiculo');
       }
@@ -144,15 +144,6 @@ class VehiculosBlocDb extends Bloc<VehiculoEvento, VehiculoEstado> {
   //   }
   // }
 
-  void _getVehiculos(ObtenerVehiculos event, Emitter<VehiculoEstado> emit) async {
-    try {
-      List<Vehiculo> vehiculos = await obtenerVehiculos();
-      print("Vehículos de filtro obtenidos");
-      emit(VehiculoEstado(vehiculos: vehiculos));
-    } catch (e) {
-      emitErrorSnackBar(emit, 'Error al obtener vehículos: $e');
-    }
-  }
   
   void emitErrorSnackBar(Emitter<VehiculoEstado> emit, String errorMessage) {
     emit(VehiculoEstado(vehiculos: state.vehiculos, error: errorMessage)); // Mantener el estado actual  
@@ -164,7 +155,7 @@ class VehiculosBlocDb extends Bloc<VehiculoEvento, VehiculoEstado> {
     final Database? db = await DatabaseHelper().database;
 
     if (db == null) {
-      print('Error: Database not initialized.');
+      // print('Error: Database not initialized.');
       return [];
     }
 
@@ -186,7 +177,7 @@ class VehiculosBlocDb extends Bloc<VehiculoEvento, VehiculoEstado> {
     final Database? db = await DatabaseHelper().database;
 
     if (db == null) {
-      print('Error: Database not initialized.');
+      // print('Error: Database not initialized.');
       return [];
     }
     await db.insert(
@@ -220,7 +211,7 @@ class VehiculosBlocDb extends Bloc<VehiculoEvento, VehiculoEstado> {
     final Database? db = await DatabaseHelper().database;
 
     if (db == null) {
-      print('Error: Database not initialized.');
+      // print('Error: Database not initialized.');
       return null;
     }
 
@@ -242,7 +233,7 @@ class VehiculosBlocDb extends Bloc<VehiculoEvento, VehiculoEstado> {
         color: vehiculoData['color'],
       );
     } else {
-      print('Vehículo con id $id no encontrado.');
+      // print('Vehículo con id $id no encontrado.');
       return null;
     }
   }
@@ -251,7 +242,7 @@ class VehiculosBlocDb extends Bloc<VehiculoEvento, VehiculoEstado> {
     final Database? db = await DatabaseHelper().database;
 
     if (db == null) {
-      print('Error: Database not initialized.');
+      // print('Error: Database not initialized.');
       return null;
     }
 
@@ -273,21 +264,21 @@ class VehiculosBlocDb extends Bloc<VehiculoEvento, VehiculoEstado> {
         color: vehiculoData['color'],
       );
     } else {
-      print('Vehículo con modelo $placa no encontrado.');
+      // print('Vehículo con modelo $placa no encontrado.');
       return null;
     }
   }
 
   Future<List<Vehiculo>> updateVehiculo(Vehiculo? vehiculo) async {
     final Database? db = await DatabaseHelper().database;
-    print("entro al update");
+    // print("entro al update");
     if (vehiculo == null) {
-      print("no hay vehiculo");
+      // print("no hay vehiculo");
       return [];
     }
 
     if (db == null) {
-      print('Error: Database not initialized.');
+      // print('Error: Database not initialized.');
       return [];
     }
 
@@ -323,7 +314,7 @@ class VehiculosBlocDb extends Bloc<VehiculoEvento, VehiculoEstado> {
     final Database? db = await DatabaseHelper().database;
 
     if (db == null) {
-      print('Error: Database not initialized.');
+      // print('Error: Database not initialized.');
       return [];
     }
 
@@ -352,7 +343,7 @@ class VehiculosBlocDb extends Bloc<VehiculoEvento, VehiculoEstado> {
 Future<List<Vehiculo>> obtenerVehiculos() async {
   final Database? db = await DatabaseHelper().database;
   if (db == null) {
-    print('Error: Database not initialized.');
+    // print('Error: Database not initialized.');
     return [];
   }
   try {
@@ -369,7 +360,7 @@ Future<List<Vehiculo>> obtenerVehiculos() async {
       );
     });
   } catch (e) {
-    print('Error al obtener vehículos: $e');
+    // print('Error al obtener vehículos: $e');
     throw Exception('Error al obtener vehículos: $e');
   }
 }

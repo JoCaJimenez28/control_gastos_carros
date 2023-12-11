@@ -19,7 +19,7 @@ class DatabaseHelper {
 
     try {
       rutaBaseDatos =
-          await fabricaBaseDatos.getDatabasesPath() + "/databaseConVals3.db";
+          "${await fabricaBaseDatos.getDatabasesPath()}/databaseConVals3.db";
       return dbGestor = await fabricaBaseDatos.openDatabase(
         rutaBaseDatos,
         options: OpenDatabaseOptions(
@@ -52,7 +52,7 @@ class DatabaseHelper {
       );
     } catch (e) {
       // Handle initialization error
-      print('Error initializing database: $e');
+      // print('Error initializing database: $e');
       return null;
     }
   }

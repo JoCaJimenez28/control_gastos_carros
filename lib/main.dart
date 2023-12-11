@@ -1,12 +1,12 @@
 // import 'package:control_gastos_carros/CategoriasDialog.dart';
-import 'package:control_gastos_carros/blocs/categoriasBlocDb.dart';
-import 'package:control_gastos_carros/blocs/gastosBlocDb.dart';
-import 'package:control_gastos_carros/blocs/vehiculosBlocDb.dart';
+import 'package:control_gastos_carros/blocs/categorias_bloc_db.dart';
+import 'package:control_gastos_carros/blocs/gastos_bloc_db.dart';
+import 'package:control_gastos_carros/blocs/vehiculos_bloc_db.dart';
 import 'package:control_gastos_carros/database/database.dart';
-import 'package:control_gastos_carros/gastosScreen.dart';
-import 'package:control_gastos_carros/inicioScreen.dart';
+import 'package:control_gastos_carros/gastos_screen.dart';
+import 'package:control_gastos_carros/inicio_screen.dart';
 import 'package:control_gastos_carros/modelos/categorias.dart';
-import 'package:control_gastos_carros/vehiculosScreen.dart';
+import 'package:control_gastos_carros/vehiculos_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -22,11 +22,14 @@ void main() async {
     DeviceOrientation.portraitDown
   ]);
   
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatefulWidget {
+  const MyApp({super.key});
+
   @override
+  // ignore: library_private_types_in_public_api
   _MyAppState createState() => _MyAppState();
 }
 
@@ -34,9 +37,9 @@ class _MyAppState extends State<MyApp> {
   int _currentIndex = 0;
 
   final List<Widget> _screens = [
-    InicioScreen(),
+    const InicioScreen(),
     VehiculosScreen(),
-    GastosScreen(),
+    const GastosScreen(),
   ];
 
   @override
@@ -77,7 +80,7 @@ class _MyAppState extends State<MyApp> {
         home: Scaffold(
           body: _screens[_currentIndex],
           bottomNavigationBar: BottomNavigationBar(
-            selectedItemColor: Color(0xFF002A52),
+            selectedItemColor: const Color(0xFF002A52),
             currentIndex: _currentIndex,
             onTap: (index) {
               setState(() {
@@ -121,7 +124,7 @@ void mostrarDialogoVerCategorias(BuildContext context) {
                     ListTile(
                       title: Text(categoria.nombre),
                       trailing: IconButton(
-                        icon: Icon(Icons.delete),
+                        icon: const Icon(Icons.delete),
                         onPressed: () {
                           // Handle delete category action
                           context.read<CategoriasBloc>().add(

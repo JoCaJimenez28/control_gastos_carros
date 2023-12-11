@@ -1,8 +1,8 @@
 import 'dart:math';
 
-import 'package:control_gastos_carros/blocs/categoriasBlocDb.dart';
-import 'package:control_gastos_carros/blocs/gastosBlocDb.dart';
-import 'package:control_gastos_carros/blocs/vehiculosBlocDb.dart';
+import 'package:control_gastos_carros/blocs/categorias_bloc_db.dart';
+import 'package:control_gastos_carros/blocs/gastos_bloc_db.dart';
+import 'package:control_gastos_carros/blocs/vehiculos_bloc_db.dart';
 import 'package:control_gastos_carros/modelos/categorias.dart';
 import 'package:control_gastos_carros/modelos/gastos.dart';
 import 'package:control_gastos_carros/modelos/vehiculos.dart';
@@ -13,6 +13,8 @@ import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
 class InicioScreen extends StatefulWidget {
+  const InicioScreen({super.key});
+
   @override
   _InicioScreenState createState() => _InicioScreenState();
 }
@@ -21,6 +23,7 @@ class _InicioScreenState extends State<InicioScreen>
     with SingleTickerProviderStateMixin {
   DateTime fechaInicio = DateTime(2023, 1, 1);
   DateTime fechaFin = DateTime(2023, 12, 31);
+  
   double totalGastos = 0;
 
   @override
@@ -120,6 +123,8 @@ class _InicioScreenState extends State<InicioScreen>
       categorias,
     );
 
+    bool isValidDate = fechaInicio.isBefore(fechaFin);
+
     // Construir la serie de datos para el gráfico
     List<ChartData> data = porcentajes.entries
         .map(
@@ -165,6 +170,12 @@ class _InicioScreenState extends State<InicioScreen>
                     prefixIcon: Icon(Icons.calendar_today),
                     border: OutlineInputBorder(),
                   ),
+                //   validator: (date) {
+                //   if (date != null && date.isAfter(fechaFin)) {
+                //     return 'La fecha de inicio no puede ser mayor que la fecha de fin';
+                //   }
+                //   return null;
+                // },
                 ),
               ),
               const SizedBox(width: 16), 
@@ -190,6 +201,12 @@ class _InicioScreenState extends State<InicioScreen>
                     prefixIcon: Icon(Icons.calendar_today),
                     border: OutlineInputBorder(),
                   ),
+                  validator: (date) {
+                  if (date != null && date.isBefore(fechaInicio)) {
+                    return 'La fecha de inicio no puede ser mayor que la fecha de fin';
+                  }
+                  return null;
+                },
                 ),
               ),
             ],
@@ -204,7 +221,8 @@ class _InicioScreenState extends State<InicioScreen>
             color: Colors.white,
             borderRadius: BorderRadius.circular(8.0),
           ),
-          child: gastosFiltrados.isEmpty
+          child: isValidDate ?
+            gastosFiltrados.isEmpty
               ? const Center(
                   child:
                       Text('No hay gastos dentro de las fechas seleccionadas.'),
@@ -227,7 +245,12 @@ class _InicioScreenState extends State<InicioScreen>
                       ],
                     ),
                   ],
-                ),
+                )
+                :
+                const Center(
+                  child:
+                      Text('La fecha inicial no puede ser mayor a la final'),
+                )
         ),
 
         Expanded(
@@ -296,11 +319,11 @@ class _InicioScreenState extends State<InicioScreen>
                 }
             
                 String nombreCategoria =
-                    categoriaDelGasto.nombre ?? 'Sin categoría';
+                    categoriaDelGasto.nombre /* ?? 'Sin categoría' */;
             
                 
 
-                String modeloVehiculo = vehiculo.modelo ?? 'Desconocido';
+                String modeloVehiculo = vehiculo.modelo /* ?? 'Desconocido' */;
             
                 return ListTile(
                   title: Text(

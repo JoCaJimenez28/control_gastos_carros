@@ -1,10 +1,12 @@
 import 'package:control_gastos_carros/modelos/categorias.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'blocs/categoriasBlocDb.dart';
+import 'blocs/categorias_bloc_db.dart';
 
 
 class CategoriasDialog extends StatelessWidget {
+  const CategoriasDialog({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Dialog(
@@ -19,7 +21,7 @@ class CategoriasDialog extends StatelessWidget {
                     ListTile(
                       title: Text(categoria.nombre),
                       trailing: IconButton(
-                        icon: Icon(Icons.delete),
+                        icon: const Icon(Icons.delete),
                         onPressed: () {
                           // Handle delete category action
                           context.read<CategoriasBloc>().add(
@@ -43,7 +45,7 @@ class CategoriasDialog extends StatelessWidget {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return CategoriasDialog();
+        return const CategoriasDialog();
       },
     );
   }

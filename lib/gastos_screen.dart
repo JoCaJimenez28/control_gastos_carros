@@ -1,8 +1,8 @@
 import 'package:collection/collection.dart';
 // import 'package:control_gastos_carros/blocs/gastosBlocPrueba.dart';
-import 'package:control_gastos_carros/blocs/gastosBlocDb.dart';
-import 'package:control_gastos_carros/blocs/categoriasBlocDb.dart';
-import 'package:control_gastos_carros/blocs/vehiculosBlocDb.dart';
+import 'package:control_gastos_carros/blocs/gastos_bloc_db.dart';
+import 'package:control_gastos_carros/blocs/categorias_bloc_db.dart';
+import 'package:control_gastos_carros/blocs/vehiculos_bloc_db.dart';
 import 'package:control_gastos_carros/modelos/categorias.dart';
 import 'package:control_gastos_carros/modelos/gastos.dart';
 import 'package:control_gastos_carros/modelos/vehiculos.dart';
@@ -12,6 +12,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
 class GastosScreen extends StatefulWidget {
+  const GastosScreen({super.key});
+
   @override
   State<GastosScreen> createState() => _GastosScreenState();
 }
@@ -35,8 +37,8 @@ class _GastosScreenState extends State<GastosScreen> {
     var estadoVehiculos = context.watch<VehiculosBlocDb>().state;
     var estadoCategorias = context.watch<CategoriasBloc>().state;
 
-    print('BlocBuilder reconstruido. Nuevo estadoGastos: $estadoGastos');
-    print('BlocBuilder reconstruido. Nuevo estadoCats: $estadoCategorias');
+    // print('BlocBuilder reconstruido. Nuevo estadoGastos: $estadoGastos');
+    // print('BlocBuilder reconstruido. Nuevo estadoCats: $estadoCategorias');
 
     List<Categoria> categoriasOrdenadas =
         List.from(estadoCategorias.categorias);
@@ -245,11 +247,11 @@ class _GastosScreenState extends State<GastosScreen> {
                       itemBuilder: (context, index) {
                         // var nuevoEstadoGastos = context.watch<GastosBloc>().state;
 
-                        print('NewestadiGastos: ${estadoGastos.gastos}');
+                        // print('NewestadiGastos: ${estadoGastos.gastos}');
                         var gastosFiltrados = filtrarGastos(estadoGastos.gastos,
                             selectedCategoriaId, selectedVehiculoId);
                         var gasto = gastosFiltrados[index];
-                        print('gastosFiltrados: $gastosFiltrados');
+                        // print('gastosFiltrados: $gastosFiltrados');
                         // totalMonto = totalMonto + gastosFiltrados[index].monto;
 
                         // Buscar la categoría correspondiente al gasto
@@ -310,7 +312,7 @@ class _GastosScreenState extends State<GastosScreen> {
             onPressed: () {
               _mostrarDialogoAgregarCategoria(context, estadoCategorias);
               // estadoCategorias = context.watch<CategoriasBloc>().state;
-              print('error cat: ${estadoCategorias.error}');
+              // print('error cat: ${estadoCategorias.error}');
               if (estadoCategorias.error != "") {
                   estadoCategorias.error = "";
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -349,7 +351,7 @@ class _GastosScreenState extends State<GastosScreen> {
 
   void _mostrarDialogoAgregarGasto(BuildContext context,
       List<Vehiculo> vehiculos, List<Categoria> categorias) {
-    final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+    final GlobalKey<FormState> formKey = GlobalKey<FormState>();
     TextEditingController tipoController = TextEditingController();
     TextEditingController montoController = TextEditingController();
     TextEditingController fechaController =
@@ -361,7 +363,7 @@ class _GastosScreenState extends State<GastosScreen> {
       builder: (BuildContext context) {
         return Dialog(
           child: Form(
-            key: _formKey,
+            key: formKey,
             child: SingleChildScrollView(
               child: Container(
                 padding: const EdgeInsets.all(24),
@@ -486,7 +488,7 @@ class _GastosScreenState extends State<GastosScreen> {
                       children: [
                         ElevatedButton(
                           onPressed: () {
-                            if (_formKey.currentState!.validate() &&
+                            if (formKey.currentState!.validate() &&
                                 selectedCategoria != null &&
                                 selectedVehiculo != null) {
                               context.read<GastosBloc>().add(
@@ -574,8 +576,6 @@ class _GastosScreenState extends State<GastosScreen> {
     TextEditingController descripcionController =
         TextEditingController(text: gasto.descripcion);
 
-    Categoria? categoriaSeleccionada =
-        categorias.firstWhereOrNull((v) => v.id == gasto.categoriaId);
 
     Vehiculo? vehiculoSeleccionado =
         vehiculos.firstWhere((v) => v.id == gasto.vehiculoId);
@@ -762,7 +762,7 @@ class _GastosScreenState extends State<GastosScreen> {
 
   void _mostrarDialogoAgregarCategoria(
       BuildContext context, CategoriasEstado estadoCategorias) {
-    final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+    final GlobalKey<FormState> formKey = GlobalKey<FormState>();
     TextEditingController nombreCategoriaController = TextEditingController();
 
     showDialog(
@@ -770,7 +770,7 @@ class _GastosScreenState extends State<GastosScreen> {
       builder: (BuildContext context) {
         return Dialog(
           child: Form(
-            key: _formKey,
+            key: formKey,
             child: SingleChildScrollView(
               child: Container(
                 padding: const EdgeInsets.all(24),
@@ -832,7 +832,7 @@ class _GastosScreenState extends State<GastosScreen> {
                           onPressed: () {
                             String nombreSinEspacios =
                                   nombreCategoriaController.text.trim();
-                            if (_formKey.currentState!.validate()) {
+                            if (formKey.currentState!.validate()) {
                               context.read<CategoriasBloc>().add(
                                     AddCategoria(
                                       categoria: Categoria(
@@ -866,6 +866,8 @@ class _GastosScreenState extends State<GastosScreen> {
                           onPressed: () {
                             Navigator.of(context).pop();
                           },
+                          style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red),
                           child: const Text(
                             'Cancelar',
                             style: TextStyle(
@@ -873,8 +875,6 @@ class _GastosScreenState extends State<GastosScreen> {
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.red),
                         ),
                       ],
                     ),
@@ -890,7 +890,7 @@ class _GastosScreenState extends State<GastosScreen> {
 
   void _mostrarDialogoVerCategorias(
       BuildContext context, List<Categoria> categorias) {
-    print(categorias);
+    // print(categorias);
     showDialog(
       context: context,
       builder: (BuildContext context) {
